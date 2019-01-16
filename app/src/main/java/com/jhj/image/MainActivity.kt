@@ -16,9 +16,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val list = arrayListOf<ImageModel>(
-                ImageModel("http://47.94.173.253:8008/image/com/46/1804085749logo.png"),
+                ImageModel("http://47.94.173.253:8008/image/20181124/201811240513458764headimage.png"),
+                ImageModel("http://47.94.173.253:8008/image/20180420/15286837836/20180420035517headimage.png"),
+                ImageModel("http://47.94.173.253:8008/image/20180404/13926590001/20180404123347headimage.png"),
                 ImageModel("http://47.94.173.253:8008/image/com/59/1804113524logo.png"),
-                ImageModel("http://47.94.173.253:8008/image/com/60/1808172559logo.png")
+                ImageModel("http://47.94.173.253:8008/image/20180404/13914071928/20180404094728headimage.png")
         )
 
         textView.setOnClickListener {

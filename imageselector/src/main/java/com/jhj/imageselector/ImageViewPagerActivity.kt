@@ -6,6 +6,7 @@ import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_image_view_pager.*
 import uk.co.senab.photoview.PhotoView
@@ -18,25 +19,56 @@ import uk.co.senab.photoview.PhotoView
 class ImageViewPagerActivity : AppCompatActivity() {
 
     private lateinit var imageList: MutableList<ImageModel>
-    private var currentImage: Int = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_view_pager)
 
-        val imageIndex = intent.getIntExtra(ImageConfig.IMAGE_INDEX, 0)
+        var imageIndex = intent.getIntExtra(ImageConfig.IMAGE_INDEX, 0)
         val imageIsEditable = intent.getBooleanExtra(ImageConfig.IMAGE_IS_EDITABLE, false)
         imageList = (intent.getSerializableExtra(ImageConfig.IMAGE_LIST) as List<ImageModel>?).orEmpty().toMutableList()
-        currentImage = imageIndex
 
         tv_image_index.text = "${imageIndex + 1}/${imageList.size}"
         tv_image_delete.visibility = if (imageIsEditable) View.VISIBLE else View.GONE
         tv_image_delete.setOnClickListener {
-            imageList.removeAt(currentImage)
-            imageViewPager.adapter = pageAdapter
+            val isLeftSweep: Boolean
+            val animOutRes = if (imageIndex < imageList.size - 1) {
+                isLeftSweep = true
+                R.anim.anim_image_out_left
+            } else {
+                isLeftSweep = false
+                R.anim.anim_image_out_right
+            }
+            val animOut = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animOutRes)
+            val view = pageAdapter.getPriMaryItem()
+            animOut.fillAfter = true
+            view?.startAnimation(animOut)
+
+            imageList.removeAt(imageViewPager.currentItem)
+            if (imageList.size <= 0) {
+                finish()
+                return@setOnClickListener
+            }
+
+
             val currentIndex = if (imageIndex < imageList.size) imageIndex else imageList.size - 1
+
+
+            imageViewPager.adapter?.notifyDataSetChanged()
             imageViewPager.currentItem = currentIndex
             tv_image_index.text = "${currentIndex + 1}/${imageList.size}"
+
+            val animInRes = if (isLeftSweep) {
+                R.anim.anim_image_in_left
+            } else {
+                R.anim.anim_image_in_right
+            }
+            val animIn = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animInRes)
+            val viewInt = pageAdapter.getPriMaryItem()
+            animIn.fillAfter = true
+            viewInt?.startAnimation(animIn)
+
         }
         imageViewPager.adapter = pageAdapter
         imageViewPager.currentItem = imageIndex
@@ -50,16 +82,16 @@ class ImageViewPagerActivity : AppCompatActivity() {
             }
 
             override fun onPageSelected(position: Int) {
-                currentImage = position
+                imageIndex = position
                 tv_image_index.text = "${position + 1}/${imageList.size}"
             }
 
         })
-
-
     }
 
     private val pageAdapter = object : PagerAdapter() {
+
+        private var mPrimaryItem: View? = null
 
         override fun isViewFromObject(view: View, `object`: Any): Boolean {
             return view == `object`
@@ -84,6 +116,19 @@ class ImageViewPagerActivity : AppCompatActivity() {
             if (position < imageList.size) {
                 container.removeView(`object` as View?)
             }
+        }
+
+        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
+            super.setPrimaryItem(container, position, `object`)
+            this.mPrimaryItem = `object` as View
+        }
+
+        override fun getItemPosition(`object`: Any): Int {
+            return POSITION_NONE
+        }
+
+        fun getPriMaryItem(): View? {
+            return mPrimaryItem
         }
     }
 }
