@@ -29,47 +29,7 @@ class ImageViewPagerActivity : AppCompatActivity() {
         val imageIsEditable = intent.getBooleanExtra(ImageConfig.IMAGE_IS_EDITABLE, false)
         imageList = (intent.getSerializableExtra(ImageConfig.IMAGE_LIST) as List<ImageModel>?).orEmpty().toMutableList()
 
-        tv_image_index.text = "${imageIndex + 1}/${imageList.size}"
-        tv_image_delete.visibility = if (imageIsEditable) View.VISIBLE else View.GONE
-        tv_image_delete.setOnClickListener {
-            val isLeftSweep: Boolean
-            val animOutRes = if (imageIndex < imageList.size - 1) {
-                isLeftSweep = true
-                R.anim.anim_image_out_left
-            } else {
-                isLeftSweep = false
-                R.anim.anim_image_out_right
-            }
-            val animOut = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animOutRes)
-            val view = pageAdapter.getPriMaryItem()
-            animOut.fillAfter = true
-            view?.startAnimation(animOut)
-
-            imageList.removeAt(imageViewPager.currentItem)
-            if (imageList.size <= 0) {
-                finish()
-                return@setOnClickListener
-            }
-
-
-            val currentIndex = if (imageIndex < imageList.size) imageIndex else imageList.size - 1
-
-
-            imageViewPager.adapter?.notifyDataSetChanged()
-            imageViewPager.currentItem = currentIndex
-            tv_image_index.text = "${currentIndex + 1}/${imageList.size}"
-
-            val animInRes = if (isLeftSweep) {
-                R.anim.anim_image_in_left
-            } else {
-                R.anim.anim_image_in_right
-            }
-            val animIn = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animInRes)
-            val viewInt = pageAdapter.getPriMaryItem()
-            animIn.fillAfter = true
-            viewInt?.startAnimation(animIn)
-
-        }
+        imageViewPager.offscreenPageLimit = imageList.size
         imageViewPager.adapter = pageAdapter
         imageViewPager.currentItem = imageIndex
         imageViewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
@@ -87,6 +47,46 @@ class ImageViewPagerActivity : AppCompatActivity() {
             }
 
         })
+
+        tv_image_index.text = "${imageIndex + 1}/${imageList.size}"
+        tv_image_delete.visibility = if (imageIsEditable) View.VISIBLE else View.GONE
+        tv_image_delete.setOnClickListener {
+
+            val isLeftSweep: Boolean
+            val animOutRes = if (imageIndex < imageList.size - 1) {
+                isLeftSweep = true
+                R.anim.anim_image_out_left
+            } else {
+                isLeftSweep = false
+                R.anim.anim_image_out_right
+            }
+            val animOut = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animOutRes)
+            val viewOut = pageAdapter.getPriMaryItem()
+            animOut.fillAfter = true
+            viewOut?.startAnimation(animOut)
+
+            imageList.removeAt(imageIndex)
+            if (imageList.size <= 0) {
+                finish()
+                return@setOnClickListener
+            }
+
+            val currentIndex = if (imageIndex < imageList.size) imageIndex else imageList.size - 1
+            imageViewPager.adapter?.notifyDataSetChanged()
+            imageViewPager.currentItem = currentIndex
+            tv_image_index.text = "${currentIndex + 1}/${imageList.size}"
+
+            val animInRes = if (isLeftSweep) {
+                R.anim.anim_image_in_left
+            } else {
+                R.anim.anim_image_in_right
+            }
+            val animIn = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animInRes)
+            val viewInt = pageAdapter.getPriMaryItem()
+            animIn.fillAfter = true
+            viewInt?.startAnimation(animIn)
+        }
+
     }
 
     private val pageAdapter = object : PagerAdapter() {
@@ -113,9 +113,7 @@ class ImageViewPagerActivity : AppCompatActivity() {
         }
 
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            if (position < imageList.size) {
-                container.removeView(`object` as View?)
-            }
+            container.removeView(`object` as View?)
         }
 
         override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
