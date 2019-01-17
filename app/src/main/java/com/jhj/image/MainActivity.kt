@@ -1,12 +1,11 @@
 package com.jhj.image
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import com.jhj.imageselector.ImageConfig
+import android.support.v7.app.AppCompatActivity
 import com.jhj.imageselector.ImageModel
-
-import com.jhj.imageselector.ImageViewPagerActivity
+import com.jhj.imageselector.ImageSelector
+import com.jhj.imageselector.ui.ImageSelectorActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -23,10 +22,14 @@ class MainActivity : AppCompatActivity() {
                 ImageModel("http://47.94.173.253:8008/image/20180404/13914071928/20180404094728headimage.png")
         )
 
-        textView.setOnClickListener {
-            val intent = Intent(this, ImageViewPagerActivity::class.java)
-            intent.putExtra(ImageConfig.IMAGE_IS_EDITABLE, true)
-            intent.putExtra(ImageConfig.IMAGE_LIST, list)
+        btn_preview.setOnClickListener {
+            ImageSelector.getInstance(this)
+                    .imagePreview(list)
+        }
+
+
+        btn_selector.setOnClickListener {
+            val intent = Intent(this, ImageSelectorActivity::class.java)
             startActivity(intent)
         }
     }

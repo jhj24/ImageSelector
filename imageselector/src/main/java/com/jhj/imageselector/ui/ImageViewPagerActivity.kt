@@ -1,4 +1,4 @@
-package com.jhj.imageselector
+package com.jhj.imageselector.ui
 
 import android.os.Bundle
 import android.support.v4.view.PagerAdapter
@@ -8,6 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
+import com.jhj.imageselector.ImageConfig
+import com.jhj.imageselector.ImageModel
+import com.jhj.imageselector.R
 import kotlinx.android.synthetic.main.activity_image_view_pager.*
 import uk.co.senab.photoview.PhotoView
 
@@ -19,7 +22,6 @@ import uk.co.senab.photoview.PhotoView
 class ImageViewPagerActivity : AppCompatActivity() {
 
     private lateinit var imageList: MutableList<ImageModel>
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,19 +54,7 @@ class ImageViewPagerActivity : AppCompatActivity() {
         tv_image_delete.visibility = if (imageIsEditable) View.VISIBLE else View.GONE
         tv_image_delete.setOnClickListener {
 
-            val isLeftSweep: Boolean
-            val animOutRes = if (imageIndex < imageList.size - 1) {
-                isLeftSweep = true
-                R.anim.anim_image_out_left
-            } else {
-                isLeftSweep = false
-                R.anim.anim_image_out_right
-            }
-            val animOut = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animOutRes)
-            val viewOut = pageAdapter.getPriMaryItem()
-            animOut.fillAfter = true
-            viewOut?.startAnimation(animOut)
-
+            val isLeftSweep = imageIndex < imageList.size - 1
             imageList.removeAt(imageIndex)
             if (imageList.size <= 0) {
                 finish()
@@ -82,9 +72,8 @@ class ImageViewPagerActivity : AppCompatActivity() {
                 R.anim.anim_image_in_right
             }
             val animIn = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animInRes)
-            val viewInt = pageAdapter.getPriMaryItem()
             animIn.fillAfter = true
-            viewInt?.startAnimation(animIn)
+            imageViewPager.startAnimation(animIn)
         }
 
     }
@@ -123,10 +112,6 @@ class ImageViewPagerActivity : AppCompatActivity() {
 
         override fun getItemPosition(`object`: Any): Int {
             return POSITION_NONE
-        }
-
-        fun getPriMaryItem(): View? {
-            return mPrimaryItem
         }
     }
 }

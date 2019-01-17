@@ -1,4 +1,4 @@
-package com.jhj.imageselector
+package com.jhj.imageselector.weight
 
 import android.content.Context
 import android.support.v4.view.ViewPager
@@ -17,6 +17,5 @@ class ImageViewPager(context: Context, attrs: AttributeSet? = null) : ViewPager(
             e.printStackTrace()
             false
         }
-
     }
 }

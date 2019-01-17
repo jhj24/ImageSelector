@@ -2,6 +2,7 @@
     package="com.jhj.imageselector">
 
     <application>
-        <activity android:name=".ImageViewPagerActivity" />
+        <activity android:name=".ui.ImageViewPagerActivity" />
+        <activity android:name=".ui.ImageSelectorActivity" />
     </application>
 </manifest>

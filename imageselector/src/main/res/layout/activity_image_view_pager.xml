@@ -5,7 +5,7 @@
     android:background="#000000"
     android:orientation="vertical">
 
-    <com.jhj.imageselector.ImageViewPager
+    <com.jhj.imageselector.weight.ImageViewPager
         android:id="@+id/imageViewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
