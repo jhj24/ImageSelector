@@ -3,6 +3,7 @@ package com.jhj.imageselector;
 import android.content.Context;
 import android.content.Intent;
 
+import com.jhj.imageselector.ui.ImageSelectorActivity;
 import com.jhj.imageselector.ui.ImageViewPagerActivity;
 
 import java.lang.ref.WeakReference;
@@ -29,6 +30,26 @@ public class ImageSelector {
         }
         return singleton;
     }
+
+    public void imageSelected() {
+        if (isContextNull()) return;
+        Context context = weakReference.get();
+        Intent intent = new Intent(context, ImageSelectorActivity.class);
+        context.startActivity(intent);
+    }
+
+
+    public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum) {
+        if (isContextNull()) return;
+        Context context = weakReference.get();
+        Intent intent = new Intent(context, ImageSelectorActivity.class);
+        intent.putExtra(ImageConfig.EXTRA_SELECTED_MODE, selectedMode);
+        intent.putExtra(ImageConfig.EXTRA_SELECTED_MAX_NUM, selectedMaxNum);
+        intent.putExtra(ImageConfig.EXTRA_SELECTED_MIN_NUM, selectedMinNum);
+        context.startActivity(intent);
+    }
+
+
 
     public void imagePreview(List<ImageModel> imageList) {
         imagePreview(imageList, 0);

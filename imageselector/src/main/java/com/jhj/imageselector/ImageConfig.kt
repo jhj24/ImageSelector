@@ -9,4 +9,9 @@ object ImageConfig {
     const val IMAGE_LIST = "image_list"
     const val IMAGE_IS_EDITABLE = "image_is_editable"
 
+
+    const val EXTRA_SELECTED_MODE = "selected_mode"
+    const val EXTRA_SELECTED_MAX_NUM = "selected_max_num"
+    const val EXTRA_SELECTED_MIN_NUM = "selected_min_num"
+
 }

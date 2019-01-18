@@ -86,8 +86,8 @@ object MediaLoading {
                                     "所有音频"
                                 else
                                     "相机胶卷"
-                                allImageFolder.name = title
-                                allImageFolder.images = latelyImages
+                                allImageFolder.setName(title)
+                                allImageFolder.setImages(latelyImages)
                             }
                         }
                         body(imageFolders)
@@ -111,9 +111,9 @@ object MediaLoading {
             if (lhs.images == null || rhs.images == null) {
                 return@Comparator 0
             }
-            val lSize = lhs.imageNum
-            val rSize = rhs.imageNum
-            if (lSize == rSize) 0 else if (lSize < rSize) 1 else -1
+            val lsize = lhs.imageNum
+            val rsize = rhs.imageNum
+            if (lsize == rsize) 0 else if (lsize < rsize) 1 else -1
         })
     }
 

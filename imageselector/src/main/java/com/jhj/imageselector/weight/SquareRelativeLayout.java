@@ -1,17 +1,13 @@
 package com.jhj.imageselector.weight;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.RelativeLayout;
 
 /**
- * author：luck
- * project：SquareRelativeLayout
- * package：com.luck.picture.ui
- * email：893855882@qq.com
- * data：16/12/31
+ * 宽高相同的 RelativeLayout
+ *
+ * Created by jhj on 19-1-15.
  */
 
 public class SquareRelativeLayout extends RelativeLayout {
@@ -28,14 +24,8 @@ public class SquareRelativeLayout extends RelativeLayout {
         super(context, attrs, defStyleAttr);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public SquareRelativeLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // Set a square layout.
         super.onMeasure(widthMeasureSpec, widthMeasureSpec);
     }
 

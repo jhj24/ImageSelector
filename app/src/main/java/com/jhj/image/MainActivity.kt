@@ -29,8 +29,8 @@ class MainActivity : AppCompatActivity() {
 
 
         btn_selector.setOnClickListener {
-            val intent = Intent(this, ImageSelectorActivity::class.java)
-            startActivity(intent)
+           ImageSelector.getInstance(this)
+                   .imageSelected()
         }
     }
 }
