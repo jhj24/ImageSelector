@@ -13,6 +13,7 @@
         </provider>
 
         <activity android:name=".ui.ImageViewPagerActivity" />
-        <activity android:name=".ui.ImageSelectorActivity" />
+        <activity android:name=".ui.ImageSelectorActivity"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 </manifest>
