@@ -90,18 +90,25 @@
           android:visibility="invisible" />-->
 
     <ImageView
-        android:id="@+id/iv_picture"
+        android:id="@+id/iv_image_selector_picture"
+        android:src="@drawable/bg_image_selector_placeholder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
 
-    <ImageView
-        android:id="@+id/iv_image_state"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+    <RelativeLayout
+        android:id="@+id/layout_image_selector_state"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_alignParentRight="true"
-        android:layout_margin="6dp"
-        android:background="@drawable/picture_checkbox_selector" />
+        android:padding="6dp">
+
+        <ImageView
+            android:id="@+id/iv_image_selector_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/picture_checkbox_selector" />
+    </RelativeLayout>
 
 
 </com.jhj.imageselector.weight.SquareRelativeLayout>

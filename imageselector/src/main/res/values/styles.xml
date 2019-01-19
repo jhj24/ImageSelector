@@ -1,6 +1,13 @@
 <resources>
+
+    <style name="WindowStyle">
+        <item name="android:windowEnterAnimation">@anim/fade_in</item>
+        <item name="android:windowExitAnimation">@anim/fade_out</item>
+    </style>
+
     <!--默认样式-->
     <style name="picture.default.style" parent="Theme.AppCompat.Light.DarkActionBar">
+
         <!--&lt;!&ndash; Customize your theme here. &ndash;&gt;
         &lt;!&ndash;标题栏背景色&ndash;&gt;
         <item name="colorPrimary">@color/bar_grey</item>

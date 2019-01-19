@@ -91,6 +91,7 @@ object MediaLoading {
                             }
                         }
                         body(imageFolders)
+                        activity.supportLoaderManager.destroyLoader(type)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

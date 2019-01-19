@@ -18,9 +18,11 @@ import android.view.animation.Animation
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.jhj.imageselector.*
+import com.jhj.imageselector.weight.PopWindow
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import kotlinx.android.synthetic.main.activity_image_selector.*
+import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
 import org.jetbrains.anko.toast
 import java.io.File
 import java.util.*
@@ -39,18 +41,25 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private val DURATION = 450
 
     //模式
-    private var isAllowTakePhoto = true
-    private var mSelectMode = PictureConfig.SINGLE
+    private var isOnlyTakePhoto = false //是否只拍照
+    private var isAllowTakePhoto = true //选择照片是否相机
+    private var mSelectMode = PictureConfig.SINGLE //图片是单选、多选
+
+
+    //popWindow
+    private var isFolderWindowDismiss = true
+
+    //选择框
+    private lateinit var folderWindow: PopWindow
+    private var foldersList: List<LocalMediaFolder> = ArrayList()
+
 
     private lateinit var config: PictureSelectionConfig
-    private var foldersList: List<LocalMediaFolder> = ArrayList()
     private var cameraPath: String? = null
     private var outputCameraPath: String? = null
     private var selectImages = ArrayList<LocalMedia>()
     private val maxSelectNum: Int = 9
 
-
-    private val list = arrayListOf<Any>()
     private lateinit var animation: Animation
     private lateinit var adapter: SlimAdapter
     private lateinit var lastTimeSelectedInjector: ViewInjector
@@ -61,11 +70,26 @@ open class ImageSelectorActivity : AppCompatActivity() {
         setContentView(R.layout.activity_image_selector)
         config = PictureSelectionConfig.getInstance()
 
-        /* if (isAllowTakePhoto) {
+
+        val titleDrawableRight = if (isFolderWindowDismiss) {
+            R.drawable.arrow_down
+        } else {
+            R.drawable.arrow_up
+        }
+        val drawable = ContextCompat.getDrawable(this, titleDrawableRight)
+        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null)
+        tv_image_selector_title.compoundDrawablePadding = 10
+        tv_image_selector_title.setOnClickListener {
+            folderWindow.showAsDropDown(it)
+        }
+
+        if (isOnlyTakePhoto) {
              startOpenCamera()
              return
-         }*/
+        }
 
+
+        folderWindow = PopWindow(this)
 
         animation = OptAnimationLoader.loadAnimation(this, R.anim.modal_in)
 
@@ -76,8 +100,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
         MediaLoading.loadMedia(this, false) {
             foldersList = it
-
-            list.clear()
+            val list = arrayListOf<Any>()
+            folderWindow.bindFolder(it)
             if (isAllowTakePhoto) {
                 list.add(Camera())
             }
@@ -86,23 +110,27 @@ open class ImageSelectorActivity : AppCompatActivity() {
             adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
                     .register<LocalMedia>(R.layout.layout_grid_image) { viewInjector, localMedia, i ->
                         viewInjector
-                                .with<ImageView>(R.id.iv_picture) {
+                                .with<ImageView>(R.id.iv_image_selector_picture) {
                                     Glide.with(this)
                                             .load(localMedia.path)
                                             .into(it)
 
                                 }
-                                .with<ImageView>(R.id.iv_image_state) {
+                                .with<ImageView>(R.id.iv_image_selector_state) {
                                     it.isSelected = localMedia.isChecked
                                     if (mSelectMode == PictureConfig.SINGLE && localMedia.isChecked) {
                                         lastTimeSelectedInjector = viewInjector
                                         lastTimeSelectedLocalMedia = localMedia
                                     }
                                 }
+                                .clicked(R.id.layout_image_selector_state) {
+
+
+                                }
                                 .clicked {
                                     val pictureType = if (selectImages.size > 0) selectImages.get(0).pictureType else ""
-                                    val stateImageView = viewInjector.getView<ImageView>(R.id.iv_image_state)
-                                    val imageView = viewInjector.getView<ImageView>(R.id.iv_picture)
+                                    val stateImageView = viewInjector.getView<ImageView>(R.id.iv_image_selector_state)
+                                    val imageView = viewInjector.getView<ImageView>(R.id.iv_image_selector_picture)
                                     val isChecked = stateImageView.isSelected
                                     if (!TextUtils.isEmpty(pictureType)) {
                                         val toEqual = MediaMimeType.mimeToEqual(pictureType, localMedia.pictureType)
@@ -200,8 +228,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private fun singleRadioMediaImage() {
         if (selectImages.size > 0) {
             selectImages.clear()
-            val lastTimeSelectedImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_picture)
-            val lastTimeSelectedStateImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_state)
+            val lastTimeSelectedImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_selector_picture)
+            val lastTimeSelectedStateImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_selector_state)
             scaleAnim(lastTimeSelectedImageView, zoomSize, originalSize)
             lastTimeSelectedImageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
             lastTimeSelectedStateImageView.isSelected = false
@@ -320,7 +348,6 @@ open class ImageSelectorActivity : AppCompatActivity() {
             media.isChecked = true
             media.mimeType = config.mimeType
             selectImages.add(media)
-
 
             adapter.addData(1, media)
 
