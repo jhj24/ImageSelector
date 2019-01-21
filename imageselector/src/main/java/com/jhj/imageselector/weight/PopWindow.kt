@@ -79,13 +79,23 @@ class PopWindow(private val mContext: Context) : PopupWindow() {
                             .text(R.id.tv_folder_name, bean.name)
                             .text(R.id.tv_folder_num, "(${bean.imageNum})")
                             .clicked {
-                                it.isSelected = !it.isSelected
-                                bean.isChecked = !it.isSelected
+                                itemClickedListener?.onItemClicked(bean)
+                                dismiss()
                             }
                 }
                 .attachTo(view.recycler_image_selector_folder)
 
 
+    }
+
+    var itemClickedListener: OnItemClickListener? = null
+
+    interface OnItemClickListener {
+        fun onItemClicked(bean: LocalMediaFolder)
+    }
+
+    fun setItemClickListener(onItemClickListener: OnItemClickListener) {
+        this.itemClickedListener = onItemClickListener
     }
 
 

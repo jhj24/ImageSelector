@@ -31,7 +31,7 @@
             android:gravity="center"
             android:maxEms="11"
             android:padding="6dp"
-            android:text="相机交卷"
+            android:text="相机胶卷"
             android:textSize="17sp" />
 
         <ImageView

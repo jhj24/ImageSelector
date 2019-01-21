@@ -14,7 +14,6 @@ import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.text.TextUtils
-import android.view.animation.Animation
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.jhj.imageselector.*
@@ -34,6 +33,13 @@ import java.util.*
  */
 open class ImageSelectorActivity : AppCompatActivity() {
 
+    private lateinit var config: PictureSelectionConfig
+    private lateinit var adapter: SlimAdapter
+
+    //上一次选中图片的信息
+    private lateinit var lastTimeSelectedInjector: ViewInjector
+    private lateinit var lastTimeSelectedLocalMedia: LocalMedia
+
     //动画
     private val zoomAnim: Boolean = false
     private val originalSize = 1.0f
@@ -42,56 +48,32 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
     //模式
     private var isOnlyTakePhoto = false //是否只拍照
-    private var isAllowTakePhoto = true //选择照片是否相机
+    private var isAllowTakePhoto = true //选择照片是否有相机
     private var mSelectMode = PictureConfig.SINGLE //图片是单选、多选
+    private val maxSelectNum: Int = 9 //最大选择数量
+    private val minSelectNum: Int = 1 //最小选择数量
+    private var selectImages = ArrayList<LocalMedia>() //被选中的图片
 
-
-    //popWindow
-    private var isFolderWindowDismiss = true
-
-    //选择框
+    //文件夹选择PopWindow
     private lateinit var folderWindow: PopWindow
     private var foldersList: List<LocalMediaFolder> = ArrayList()
 
-
-    private lateinit var config: PictureSelectionConfig
+    //拍照图片路径
     private var cameraPath: String? = null
     private var outputCameraPath: String? = null
-    private var selectImages = ArrayList<LocalMedia>()
-    private val maxSelectNum: Int = 9
 
-    private lateinit var animation: Animation
-    private lateinit var adapter: SlimAdapter
-    private lateinit var lastTimeSelectedInjector: ViewInjector
-    private lateinit var lastTimeSelectedLocalMedia: LocalMedia
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_selector)
         config = PictureSelectionConfig.getInstance()
 
-
-        val titleDrawableRight = if (isFolderWindowDismiss) {
-            R.drawable.arrow_down
-        } else {
-            R.drawable.arrow_up
-        }
-        val drawable = ContextCompat.getDrawable(this, titleDrawableRight)
-        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null)
-        tv_image_selector_title.compoundDrawablePadding = 10
-        tv_image_selector_title.setOnClickListener {
-            folderWindow.showAsDropDown(it)
-        }
-
         if (isOnlyTakePhoto) {
              startOpenCamera()
              return
         }
 
-
         folderWindow = PopWindow(this)
-
-        animation = OptAnimationLoader.loadAnimation(this, R.anim.modal_in)
 
         picture_recycler.setHasFixedSize(true)
         picture_recycler.addItemDecoration(GridSpacingItemDecoration(4,
@@ -100,8 +82,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
         MediaLoading.loadMedia(this, false) {
             foldersList = it
+            folderWindow.bindFolder(foldersList)
             val list = arrayListOf<Any>()
-            folderWindow.bindFolder(it)
             if (isAllowTakePhoto) {
                 list.add(Camera())
             }
@@ -184,6 +166,35 @@ open class ImageSelectorActivity : AppCompatActivity() {
                     .attachTo(picture_recycler)
                     .setDataList(list)
         }
+
+
+        folderArrow(R.drawable.arrow_up)
+        tv_image_selector_title.setOnClickListener {
+            folderArrow(R.drawable.arrow_up)
+            folderWindow.showAsDropDown(it)
+        }
+        folderWindow.setOnDismissListener {
+            folderArrow(R.drawable.arrow_down)
+        }
+        folderWindow.setItemClickListener(object : PopWindow.OnItemClickListener {
+            override fun onItemClicked(bean: LocalMediaFolder) {
+                val list = arrayListOf<Any>()
+                if (bean.name == "相机胶卷" && isAllowTakePhoto) {
+                    list.add(Camera())
+                }
+                list.addAll(bean.images)
+                adapter.dataList = list
+                tv_image_selector_title.text = bean.name
+
+            }
+        })
+    }
+
+    //popWindow
+    fun folderArrow(drawableRes: Int) {
+        val drawable = ContextCompat.getDrawable(this, drawableRes)
+        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null)
+        tv_image_selector_title.compoundDrawablePadding = 10
     }
 
 
@@ -271,7 +282,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                 folder.imageNum = num
                 folder.images.add(0, media)
                 folder.firstImagePath = cameraPath
-                //folderWindow.bindFolder(foldersList)
+                folderWindow.bindFolder(foldersList)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -314,7 +325,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
             val folderName = if (config.mimeType === MediaMimeType.ofAudio())
                 "所有音频"
             else
-                "相机交卷"
+                "相机胶卷"
             newFolder.name = folderName
             newFolder.path = ""
             newFolder.firstImagePath = ""
@@ -351,9 +362,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
             adapter.addData(1, media)
 
-
             // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
-            //manualSaveFolder(media)
+            manualSaveFolder(media)
 
         }
 
