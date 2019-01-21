@@ -12,7 +12,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".ui.ImageViewPagerActivity" />
+        <activity android:name=".ui.ImagePreviewActivity" />
         <activity android:name=".ui.ImageSelectorActivity"
             android:windowSoftInputMode="adjustPan"/>
     </application>

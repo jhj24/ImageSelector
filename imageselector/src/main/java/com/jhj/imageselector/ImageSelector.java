@@ -1,10 +1,11 @@
 package com.jhj.imageselector;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 
+import com.jhj.imageselector.activityresult.ActivityResult;
+import com.jhj.imageselector.ui.ImagePreviewActivity;
 import com.jhj.imageselector.ui.ImageSelectorActivity;
-import com.jhj.imageselector.ui.ImageViewPagerActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -14,13 +15,13 @@ public class ImageSelector {
 
     private static volatile ImageSelector singleton;
 
-    private WeakReference<Context> weakReference;
+    private WeakReference<Activity> weakReference;
 
-    private ImageSelector(Context context) {
-        weakReference = new WeakReference<Context>(context);
+    private ImageSelector(Activity context) {
+        weakReference = new WeakReference<Activity>(context);
     }
 
-    public static ImageSelector getInstance(Context context) {
+    public static ImageSelector getInstance(Activity context) {
         if (singleton == null) {
             synchronized (ImageSelector.class) {
                 if (singleton == null) {
@@ -31,24 +32,34 @@ public class ImageSelector {
         return singleton;
     }
 
-    public void imageSelected() {
+    public void imageSelected(final OnImageSelectedListener listener) {
         if (isContextNull()) return;
-        Context context = weakReference.get();
-        Intent intent = new Intent(context, ImageSelectorActivity.class);
-        context.startActivity(intent);
+        Activity context = weakReference.get();
+        ActivityResult.getInstance(context)
+                .targetActivity(ImageSelectorActivity.class)
+                .putInt(ImageExtra.EXTRA_SELECTED_MODE, 1)
+                .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9)
+                .putInt(ImageExtra.EXTRA_SELECTED_MIN_NUM, 1)
+                .onResult(new ActivityResult.OnActivityResultListener() {
+                    @Override
+                    public void onResult(Intent data) {
+                        List<LocalMedia> localMediaList = (List<LocalMedia>) data.getSerializableExtra(ImageExtra.EXTRA_SELECTED_RESULT);
+                        listener.onSelected(localMediaList);
+                    }
+                });
     }
 
 
-    public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum) {
+    public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum, ActivityResult.OnActivityResultListener listener) {
         if (isContextNull()) return;
-        Context context = weakReference.get();
-        Intent intent = new Intent(context, ImageSelectorActivity.class);
-        intent.putExtra(ImageConfig.EXTRA_SELECTED_MODE, selectedMode);
-        intent.putExtra(ImageConfig.EXTRA_SELECTED_MAX_NUM, selectedMaxNum);
-        intent.putExtra(ImageConfig.EXTRA_SELECTED_MIN_NUM, selectedMinNum);
-        context.startActivity(intent);
+        Activity context = weakReference.get();
+        ActivityResult.getInstance(context)
+                .targetActivity(ImageSelectorActivity.class)
+                .putInt(ImageExtra.EXTRA_SELECTED_MODE, selectedMode)
+                .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, selectedMaxNum)
+                .putInt(ImageExtra.EXTRA_SELECTED_MIN_NUM, selectedMinNum)
+                .onResult(listener);
     }
-
 
 
     public void imagePreview(List<ImageModel> imageList) {
@@ -61,11 +72,11 @@ public class ImageSelector {
 
     public void imagePreview(List<ImageModel> imageList, int currentIndex, boolean isEditable) {
         if (isContextNull()) return;
-        Context context = weakReference.get();
-        Intent intent = new Intent(context, ImageViewPagerActivity.class);
-        intent.putExtra(ImageConfig.IMAGE_LIST, toArrayList(imageList));
-        intent.putExtra(ImageConfig.IMAGE_INDEX, currentIndex);
-        intent.putExtra(ImageConfig.IMAGE_IS_EDITABLE, isEditable);
+        Activity context = weakReference.get();
+        Intent intent = new Intent(context, ImagePreviewActivity.class);
+        intent.putExtra(ImageExtra.IMAGE_LIST, toArrayList(imageList));
+        intent.putExtra(ImageExtra.IMAGE_INDEX, currentIndex);
+        intent.putExtra(ImageExtra.IMAGE_IS_EDITABLE, isEditable);
         context.startActivity(intent);
 
     }
@@ -76,5 +87,9 @@ public class ImageSelector {
 
     private ArrayList<ImageModel> toArrayList(List<ImageModel> list) {
         return new ArrayList<>(list);
+    }
+
+    public interface OnImageSelectedListener {
+        void onSelected(List<LocalMedia> list);
     }
 }

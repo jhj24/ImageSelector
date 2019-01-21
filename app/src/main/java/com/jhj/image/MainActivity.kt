@@ -1,11 +1,9 @@
 package com.jhj.image
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.jhj.imageselector.ImageModel
 import com.jhj.imageselector.ImageSelector
-import com.jhj.imageselector.ui.ImageSelectorActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -29,8 +27,12 @@ class MainActivity : AppCompatActivity() {
 
 
         btn_selector.setOnClickListener {
-           ImageSelector.getInstance(this)
-                   .imageSelected()
+            ImageSelector.getInstance(this)
+                    .imageSelected {
+                        val a = it;
+                        val b = a;
+                    }
         }
     }
+
 }

@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
-import com.jhj.imageselector.ImageConfig
-import com.jhj.imageselector.ImageModel
+import com.jhj.imageselector.ImageExtra
+import com.jhj.imageselector.LocalMedia
 import com.jhj.imageselector.R
 import kotlinx.android.synthetic.main.activity_image_view_pager.*
 import uk.co.senab.photoview.PhotoView
@@ -19,17 +19,17 @@ import uk.co.senab.photoview.PhotoView
  *
  * Created by jhj on 19-1-15.
  */
-class ImageViewPagerActivity : AppCompatActivity() {
+class ImagePreviewActivity : AppCompatActivity() {
 
-    private lateinit var imageList: MutableList<ImageModel>
+    private lateinit var imageList: MutableList<LocalMedia>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_view_pager)
 
-        var imageIndex = intent.getIntExtra(ImageConfig.IMAGE_INDEX, 0)
-        val imageIsEditable = intent.getBooleanExtra(ImageConfig.IMAGE_IS_EDITABLE, false)
-        imageList = (intent.getSerializableExtra(ImageConfig.IMAGE_LIST) as List<ImageModel>?).orEmpty().toMutableList()
+        var imageIndex = intent.getIntExtra(ImageExtra.IMAGE_INDEX, 0)
+        val imageIsEditable = intent.getBooleanExtra(ImageExtra.IMAGE_IS_EDITABLE, false)
+        imageList = (intent.getSerializableExtra(ImageExtra.IMAGE_LIST) as List<LocalMedia>?).orEmpty().toMutableList()
 
         imageViewPager.offscreenPageLimit = imageList.size
         imageViewPager.adapter = pageAdapter
@@ -71,7 +71,7 @@ class ImageViewPagerActivity : AppCompatActivity() {
             } else {
                 R.anim.anim_image_in_right
             }
-            val animIn = AnimationUtils.loadAnimation(this@ImageViewPagerActivity, animInRes)
+            val animIn = AnimationUtils.loadAnimation(this@ImagePreviewActivity, animInRes)
             animIn.fillAfter = true
             imageViewPager.startAnimation(animIn)
         }
@@ -93,11 +93,14 @@ class ImageViewPagerActivity : AppCompatActivity() {
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val photoView = PhotoView(container.context)
             Glide
-                    .with(this@ImageViewPagerActivity)
-                    .load(imageList[position].imagePath)
+                    .with(this@ImagePreviewActivity)
+                    .load(imageList[position].path)
                     .into(photoView)
             container.addView(photoView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-
+            photoView.setOnViewTapListener { view, x, y ->
+                finish()
+                overridePendingTransition(0, R.anim.a3)
+            }
             return photoView
         }
 
