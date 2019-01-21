@@ -43,14 +43,20 @@ public class ImageSelector {
                 .onResult(new ActivityResult.OnActivityResultListener() {
                     @Override
                     public void onResult(Intent data) {
-                        List<LocalMedia> localMediaList = (List<LocalMedia>) data.getSerializableExtra(ImageExtra.EXTRA_SELECTED_RESULT);
-                        listener.onSelected(localMediaList);
+                        if (data!= null){
+                            Object ob = data.getSerializableExtra(ImageExtra.EXTRA_SELECTED_RESULT);
+                            if (ob != null) {
+                                listener.onSelected((List<LocalMedia>) ob);
+                            }
+                        }
+
+
                     }
                 });
     }
 
 
-    public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum, ActivityResult.OnActivityResultListener listener) {
+    public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum, final OnImageSelectedListener listener) {
         if (isContextNull()) return;
         Activity context = weakReference.get();
         ActivityResult.getInstance(context)
@@ -58,7 +64,13 @@ public class ImageSelector {
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, selectedMode)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, selectedMaxNum)
                 .putInt(ImageExtra.EXTRA_SELECTED_MIN_NUM, selectedMinNum)
-                .onResult(listener);
+                .onResult(new ActivityResult.OnActivityResultListener() {
+                    @Override
+                    public void onResult(Intent data) {
+                        List<LocalMedia> localMediaList = (List<LocalMedia>) data.getSerializableExtra(ImageExtra.EXTRA_SELECTED_RESULT);
+                        listener.onSelected(localMediaList);
+                    }
+                });
     }
 
 

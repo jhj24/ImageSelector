@@ -1,5 +1,6 @@
 package com.jhj.imageselector.ui
 
+import android.Manifest
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.app.Activity
@@ -19,6 +20,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.jhj.imageselector.*
 import com.jhj.imageselector.activityresult.ActivityResult
+import com.jhj.imageselector.permissions.PermissionsCheck
 import com.jhj.imageselector.weight.PopWindow
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
@@ -37,6 +39,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
     private lateinit var config: ImageConfig
     private lateinit var adapter: SlimAdapter
+    private lateinit var previewList: List<LocalMedia>
+    private lateinit var permissions: PermissionsCheck
 
     //上一次选中图片的信息
     private lateinit var lastTimeSelectedInjector: ViewInjector
@@ -51,7 +55,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
     //模式
     private var isOnlyCamera = false //是否只拍照
     private var isAllowTakePhoto = true //选择照片是否有相机
-    private var mSelectMode = PictureConfig.SINGLE //图片是单选、多选
+    private var mSelectMode = PictureConfig.MULTIPLE //图片是单选、多选
     private val maxSelectNum: Int = 9 //最大选择数量
     private val minSelectNum: Int = 1 //最小选择数量
     private var selectImages = ArrayList<LocalMedia>() //被选中的图片
@@ -69,11 +73,22 @@ open class ImageSelectorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_selector)
         config = ImageConfig.getInstance()
-
+        folderWindow = PopWindow(this)
+        permissions = PermissionsCheck(this)
         if (isOnlyCamera) {
              startOpenCamera()
              return
         }
+
+        permissions.requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .onPermissionsResult { deniedPermissions, allPermissions ->
+                    if (deniedPermissions.size == 0) {
+                        initAdapter()
+                    } else {
+                        toast("内存权限请求失败")
+
+                    }
+                }
 
         tv_image_selector_right.setOnClickListener {
             val image = if (selectImages.size > 0) selectImages.get(0) else null
@@ -113,10 +128,6 @@ open class ImageSelectorActivity : AppCompatActivity() {
         }
 
 
-        folderWindow = PopWindow(this)
-
-        initAdapter()
-
         folderArrow(R.drawable.arrow_up)
         tv_image_selector_title.setOnClickListener {
             folderArrow(R.drawable.arrow_up)
@@ -127,6 +138,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
         }
         folderWindow.setItemClickListener(object : PopWindow.OnItemClickListener {
             override fun onItemClicked(bean: LocalMediaFolder) {
+                previewList = bean.images
                 val list = arrayListOf<Any>()
                 if (bean.name == "相机胶卷" && isAllowTakePhoto) {
                     list.add(Camera())
@@ -153,7 +165,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                 list.add(Camera())
             }
             list.addAll(it[0].images)
-
+            previewList = it[0].images
             adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
                     .register<LocalMedia>(R.layout.layout_grid_image) { viewInjector, localMedia, i ->
                         viewInjector
@@ -229,15 +241,9 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                     }
                                 }
                                 .clicked {
-                                    var index = i
-                                    val mList = adapter.dataList
-                                    if (mList[0] is Camera) {
-                                        mList.removeAt(0)
-                                        index -= 1
-                                    }
                                     ActivityResult.getInstance(this)
-                                            .putSerializable(ImageExtra.IMAGE_LIST, mList.toArrayList())
-                                            .putInt(ImageExtra.IMAGE_INDEX, index)
+                                            .putSerializable(ImageExtra.IMAGE_LIST, previewList.toArrayList())
+                                            .putInt(ImageExtra.IMAGE_INDEX, i)
                                             .targetActivity(ImagePreviewActivity::class.java)
                                             .onResult {
 
@@ -267,15 +273,33 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
 
     private fun startOpenCamera() {
-        //Todo 权限请求
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (cameraIntent.resolveActivity(packageManager) != null) {
-            val cameraFile = PictureFileUtils.createCameraFile(this, PictureConfig.TYPE_IMAGE, outputCameraPath, PictureFileUtils.POSTFIX)
-            cameraPath = cameraFile.absolutePath
-            val imageUri = parUri(cameraFile)
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-            startActivityForResult(cameraIntent, PictureConfig.REQUEST_CAMERA)
-        }
+        permissions.requestPermissions(
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                .onPermissionsResult { deniedPermissions, allPermissions ->
+                    if (deniedPermissions.size == 0) {
+                        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                        if (cameraIntent.resolveActivity(packageManager) != null) {
+                            val cameraFile = PictureFileUtils.createCameraFile(this, PictureConfig.TYPE_IMAGE, outputCameraPath, PictureFileUtils.POSTFIX)
+                            cameraPath = cameraFile.absolutePath
+                            val imageUri = parUri(cameraFile)
+                            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+                            startActivityForResult(cameraIntent, PictureConfig.REQUEST_CAMERA)
+                        }
+                    } else {
+                        deniedPermissions.forEach {
+                            if (it == Manifest.permission.CAMERA) {
+                                toast("相机权限请求失败")
+                                closeActivity()
+                            } else if (it == Manifest.permission.WRITE_EXTERNAL_STORAGE || it == Manifest.permission.READ_EXTERNAL_STORAGE) {
+                                toast("内存权限请求失败")
+                                closeActivity()
+                            }
+                        }
+                    }
+                }
+
     }
 
     /**
@@ -460,5 +484,6 @@ open class ImageSelectorActivity : AppCompatActivity() {
     }
 
     private class Camera
+
 
 }

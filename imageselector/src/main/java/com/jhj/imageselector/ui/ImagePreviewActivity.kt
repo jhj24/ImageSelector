@@ -8,6 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.jhj.imageselector.ImageExtra
 import com.jhj.imageselector.LocalMedia
 import com.jhj.imageselector.R
@@ -27,9 +30,9 @@ class ImagePreviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_view_pager)
 
+        imageList = (intent.getSerializableExtra(ImageExtra.IMAGE_LIST) as List<LocalMedia>?).orEmpty().toMutableList()
         var imageIndex = intent.getIntExtra(ImageExtra.IMAGE_INDEX, 0)
         val imageIsEditable = intent.getBooleanExtra(ImageExtra.IMAGE_IS_EDITABLE, false)
-        imageList = (intent.getSerializableExtra(ImageExtra.IMAGE_LIST) as List<LocalMedia>?).orEmpty().toMutableList()
 
         imageViewPager.offscreenPageLimit = imageList.size
         imageViewPager.adapter = pageAdapter
@@ -82,6 +85,11 @@ class ImagePreviewActivity : AppCompatActivity() {
 
         private var mPrimaryItem: View? = null
 
+        val options = RequestOptions()
+                .placeholder(R.drawable.bg_image_selector_placeholder)
+                .sizeMultiplier(0.5f)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+
         override fun isViewFromObject(view: View, `object`: Any): Boolean {
             return view == `object`
         }
@@ -94,7 +102,9 @@ class ImagePreviewActivity : AppCompatActivity() {
             val photoView = PhotoView(container.context)
             Glide
                     .with(this@ImagePreviewActivity)
+                    .asBitmap()
                     .load(imageList[position].path)
+                    .apply(options)
                     .into(photoView)
             container.addView(photoView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             photoView.setOnViewTapListener { view, x, y ->

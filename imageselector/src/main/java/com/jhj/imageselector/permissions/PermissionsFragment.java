@@ -5,6 +5,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 请求权限。
  * Created by jianhaojie on 2017/5/24.
@@ -13,7 +16,7 @@ import android.support.annotation.Nullable;
 public final class PermissionsFragment extends Fragment {
 
     private int mRequestCode = 0x10000000;
-    protected static final String REQUEST_PERMISSIONS = "requestPermissions";
+    private PermissionsCheck.OnPermissionsResultListener listener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -22,13 +25,13 @@ public final class PermissionsFragment extends Fragment {
     }
 
 
-    protected void permissionsRequest() {
-        String[] permissions = getArguments().getStringArray(REQUEST_PERMISSIONS);
-        if (permissions == null) {
+    protected void permissionsRequest(String[] mPermissions, PermissionsCheck.OnPermissionsResultListener listener) {
+        this.listener = listener;
+        if (mPermissions == null) {
             return;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(permissions, mRequestCode);
+            requestPermissions(mPermissions, mRequestCode);
         }
     }
 
@@ -36,8 +39,8 @@ public final class PermissionsFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @Nullable String[] permissions, @Nullable int[] grantResults) {
         if (mRequestCode == requestCode) {
-            PermissionsCheck.getInstance(getActivity()).requestPermissionsResult(getActivity(),permissions);
+            List<String> deniedPermissions = PermissionsUtil.getPermissionDenied(getActivity(), permissions);
+            listener.onPermissionsResult(deniedPermissions, Arrays.asList(permissions));
         }
     }
-
 }
