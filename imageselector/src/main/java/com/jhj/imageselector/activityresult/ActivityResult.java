@@ -8,31 +8,20 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public final class ActivityResult {
 
-    private static volatile ActivityResult singleton;
-
-    private final WeakReference<Activity> mActivity;
-    private WeakReference<Class<? extends Activity>> targetActivity;
-    private OnActivityResultListener listener;
+    private Activity mActivity;
+    private Class<? extends Activity> targetActivity;
     private Bundle bundle = new Bundle();
 
     private ActivityResult(Activity activity) {
-        this.mActivity = new WeakReference<>(activity);
+        this.mActivity = activity;
     }
 
-    public static ActivityResult getInstance(Activity activity) {
-        if (singleton == null) {
-            synchronized (ActivityResult.class) {
-                if (singleton == null) {
-                    singleton = new ActivityResult(activity);
-                }
-            }
-        }
-        return singleton;
+    public static ActivityResult init(Activity activity) {
+        return new ActivityResult(activity);
     }
 
     public ActivityResult putByte(String key, byte value) {
@@ -199,24 +188,21 @@ public final class ActivityResult {
 
 
     public ActivityResult targetActivity(Class<? extends Activity> targetActivity) {
-        this.targetActivity = new WeakReference<Class<? extends Activity>>(targetActivity);
+        this.targetActivity = targetActivity;
         return this;
     }
 
 
     public void onResult(OnActivityResultListener listener) {
-        Activity activity = mActivity.get();
-        this.listener = listener;
-        if (activity == null) {
+        if (mActivity == null) {
             return;
         }
         String TAG = getClass().getName();
-        FragmentManager fragmentManager = activity.getFragmentManager();
+        FragmentManager fragmentManager = mActivity.getFragmentManager();
         OnResultFragment fragment = (OnResultFragment) fragmentManager.findFragmentByTag(TAG);
 
         if (fragment == null) {
             fragment = new OnResultFragment();
-            fragment.setArguments(bundle);
             fragmentManager
                     .beginTransaction()
                     .add(fragment, TAG)
@@ -224,7 +210,7 @@ public final class ActivityResult {
             fragmentManager.executePendingTransactions();
         }
         if (targetActivity != null) {
-            fragment.startActivityForResult(targetActivity.get(),listener);
+            fragment.startActivityForResult(targetActivity, bundle, listener);
         }
 
     }

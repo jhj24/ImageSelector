@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.jhj.imageselector.ImageExtra
 import com.jhj.imageselector.LocalMedia
@@ -32,7 +31,7 @@ class ImagePreviewActivity : AppCompatActivity() {
 
         imageList = (intent.getSerializableExtra(ImageExtra.IMAGE_LIST) as List<LocalMedia>?).orEmpty().toMutableList()
         var imageIndex = intent.getIntExtra(ImageExtra.IMAGE_INDEX, 0)
-        val imageIsEditable = intent.getBooleanExtra(ImageExtra.IMAGE_IS_EDITABLE, false)
+        val imageIsDelete = intent.getBooleanExtra(ImageExtra.IMAGE_IS_DELETE, false)
 
         imageViewPager.offscreenPageLimit = imageList.size
         imageViewPager.adapter = pageAdapter
@@ -54,7 +53,7 @@ class ImagePreviewActivity : AppCompatActivity() {
         })
 
         tv_image_index.text = "${imageIndex + 1}/${imageList.size}"
-        tv_image_delete.visibility = if (imageIsEditable) View.VISIBLE else View.GONE
+        tv_image_delete.visibility = if (imageIsDelete) View.VISIBLE else View.GONE
         tv_image_delete.setOnClickListener {
 
             val isLeftSweep = imageIndex < imageList.size - 1

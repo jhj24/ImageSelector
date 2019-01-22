@@ -35,7 +35,7 @@ public class ImageSelector {
     public void imageSelected(final OnImageSelectedListener listener) {
         if (isContextNull()) return;
         Activity context = weakReference.get();
-        ActivityResult.getInstance(context)
+        ActivityResult.init(context)
                 .targetActivity(ImageSelectorActivity.class)
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, 1)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9)
@@ -59,7 +59,7 @@ public class ImageSelector {
     public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum, final OnImageSelectedListener listener) {
         if (isContextNull()) return;
         Activity context = weakReference.get();
-        ActivityResult.getInstance(context)
+        ActivityResult.init(context)
                 .targetActivity(ImageSelectorActivity.class)
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, selectedMode)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, selectedMaxNum)
@@ -82,13 +82,13 @@ public class ImageSelector {
         imagePreview(imageList, currentIndex, false);
     }
 
-    public void imagePreview(List<ImageModel> imageList, int currentIndex, boolean isEditable) {
+    public void imagePreview(List<ImageModel> imageList, int currentIndex, boolean isDelete) {
         if (isContextNull()) return;
         Activity context = weakReference.get();
         Intent intent = new Intent(context, ImagePreviewActivity.class);
         intent.putExtra(ImageExtra.IMAGE_LIST, toArrayList(imageList));
         intent.putExtra(ImageExtra.IMAGE_INDEX, currentIndex);
-        intent.putExtra(ImageExtra.IMAGE_IS_EDITABLE, isEditable);
+        intent.putExtra(ImageExtra.IMAGE_IS_DELETE, isDelete);
         context.startActivity(intent);
 
     }

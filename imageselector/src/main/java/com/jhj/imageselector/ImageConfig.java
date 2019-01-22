@@ -19,11 +19,16 @@ public class ImageConfig {
     }
 
 
+
+
     private int minSelectNum;
     private boolean isCompress = false;
     private boolean isCrop;
     private boolean isAnim;
     private SelectedMode selectMode;
+
+
+
 
 
     public int getMinSelectNum() {

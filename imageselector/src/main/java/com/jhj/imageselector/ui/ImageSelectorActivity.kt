@@ -16,6 +16,8 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.text.TextUtils
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.jhj.imageselector.*
@@ -40,7 +42,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private lateinit var config: ImageConfig
     private lateinit var adapter: SlimAdapter
     private lateinit var previewList: List<LocalMedia>
-    private lateinit var permissions: PermissionsCheck
+    private lateinit var selectedAnim: Animation
 
     //上一次选中图片的信息
     private lateinit var lastTimeSelectedInjector: ViewInjector
@@ -74,19 +76,20 @@ open class ImageSelectorActivity : AppCompatActivity() {
         setContentView(R.layout.activity_image_selector)
         config = ImageConfig.getInstance()
         folderWindow = PopWindow(this)
-        permissions = PermissionsCheck(this)
+        selectedAnim = AnimationUtils.loadAnimation(this, R.anim.modal_in)
         if (isOnlyCamera) {
              startOpenCamera()
              return
         }
 
-        permissions.requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+        PermissionsCheck.init(this)
+                .requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
                 .onPermissionsResult { deniedPermissions, allPermissions ->
-                    if (deniedPermissions.size == 0) {
+                    if (deniedPermissions.isEmpty()) {
                         initAdapter()
                     } else {
                         toast("内存权限请求失败")
-
+                        closeActivity()
                     }
                 }
 
@@ -215,6 +218,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                             lastTimeSelectedInjector = viewInjector
                                             lastTimeSelectedLocalMedia = localMedia
                                         }
+                                        stateImageView.startAnimation(selectedAnim)
                                         selectImages.add(localMedia)
                                         localMedia.num = selectImages.size
                                         if (isNeedAnim) {
@@ -232,6 +236,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                     if (selectImages.size > 0) {
                                         tv_img_num.visibility = View.VISIBLE
                                         tv_img_num.text = selectImages.size.toString()
+                                        tv_img_num.startAnimation(selectedAnim)
                                         id_ll_ok.setOnClickListener {
                                             startActivity<ImagePreviewActivity>(ImageExtra.IMAGE_LIST to selectImages)
                                         }
@@ -241,9 +246,13 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                     }
                                 }
                                 .clicked {
-                                    ActivityResult.getInstance(this)
+                                    var index = i
+                                    if (isAllowTakePhoto && adapter.dataList[0] is Camera) {
+                                        index = i - 1
+                                    }
+                                    ActivityResult.init(this)
                                             .putSerializable(ImageExtra.IMAGE_LIST, previewList.toArrayList())
-                                            .putInt(ImageExtra.IMAGE_INDEX, i)
+                                            .putInt(ImageExtra.IMAGE_INDEX, index)
                                             .targetActivity(ImagePreviewActivity::class.java)
                                             .onResult {
 
@@ -273,10 +282,10 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
 
     private fun startOpenCamera() {
-        permissions.requestPermissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
+        PermissionsCheck.init(this)
+                .requestPermissions(Manifest.permission.CAMERA,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE)
                 .onPermissionsResult { deniedPermissions, allPermissions ->
                     if (deniedPermissions.size == 0) {
                         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)

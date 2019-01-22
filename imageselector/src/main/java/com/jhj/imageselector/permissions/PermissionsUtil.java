@@ -45,16 +45,35 @@ class PermissionsUtil {
     }
 
     /**
-     * 获取被禁止的权限
+     * 获取被禁止的权限,利用 Android6.0 的权限检查方法
+     *
+     * @param activity Activity
+     * @return array
+     */
+    static String[] getDeniedPermissions(Activity activity, String[] mPermissions) {
+        ArrayList<String> deniedPermissions = new ArrayList<>();
+        if (mPermissions == null) {
+            return new String[]{};
+        }
+        for (String mPermission : mPermissions) {
+            if (ContextCompat.checkSelfPermission(activity, mPermission) != PackageManager.PERMISSION_GRANTED) {
+                deniedPermissions.add(mPermission);
+            }
+        }
+        return deniedPermissions.toArray(new String[deniedPermissions.size()]);
+    }
+
+    /**
+     * 获取被禁止的权限(彻底的)
      *
      * @param permissions 所有权限
      */
-    static List<String> getPermissionDenied(Activity activity, String... permissions) {
+    static String[] getPermissionDenied(Activity activity, String... permissions) {
         List<String> allowPermissionList = new ArrayList<>();
         List<String> deniedPermissionList = new ArrayList<>();
 
         if (permissions == null) {
-            return deniedPermissionList;
+            return new String[0];
         }
 
         for (String permission : permissions) {
@@ -77,7 +96,7 @@ class PermissionsUtil {
         deniedPermissionList.addAll(bottomLayerPermissionsIdentify(activity, allowArray));
 
 
-        return deniedPermissionList;
+        return deniedPermissionList.toArray(new String[deniedPermissionList.size()]);
 
     }
 
