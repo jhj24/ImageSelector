@@ -29,7 +29,7 @@ import kotlinx.android.synthetic.main.layout_picture_window_folder.view.*
  * 自定义PopWindow
  * Created by jhj on 19-1-19.
  */
-class PopWindow(private val mContext: Context) : PopupWindow() {
+class FolderPopWindow(private val mContext: Context) : PopupWindow() {
 
     private var isDismiss = false
     private lateinit var view: View
@@ -137,16 +137,16 @@ class PopWindow(private val mContext: Context) : PopupWindow() {
                 override fun onAnimationEnd(animation: Animation) {
                     isDismiss = false
                     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
-                        Handler().post { super@PopWindow.dismiss() }
+                        Handler().post { super@FolderPopWindow.dismiss() }
                     } else {
-                        super@PopWindow.dismiss()
+                        super@FolderPopWindow.dismiss()
                     }
                 }
 
                 override fun onAnimationRepeat(animation: Animation) {}
             })
         } else {
-            super@PopWindow.dismiss()
+            super@FolderPopWindow.dismiss()
         }
     }
 

@@ -23,12 +23,13 @@ import com.bumptech.glide.Glide
 import com.jhj.imageselector.*
 import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.permissions.PermissionsCheck
-import com.jhj.imageselector.weight.PopWindow
+import com.jhj.imageselector.weight.FolderPopWindow
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import kotlinx.android.synthetic.main.activity_image_selector.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
 import org.jetbrains.anko.startActivity
+import org.jetbrains.anko.textColor
 import org.jetbrains.anko.toast
 import java.io.File
 
@@ -39,7 +40,7 @@ import java.io.File
  */
 open class ImageSelectorActivity : AppCompatActivity() {
 
-    private lateinit var config: ImageConfig
+    private var config = ImageConfig.getInstance()
     private lateinit var adapter: SlimAdapter
     private lateinit var previewList: List<LocalMedia>
     private lateinit var selectedAnim: Animation
@@ -49,62 +50,72 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private lateinit var lastTimeSelectedLocalMedia: LocalMedia
 
     //动画
-    private val isNeedAnim: Boolean = false;
+    private var isSelectedImageAnim = config.isImageAnim
     private val originalSize = 1.0f
     private val zoomSize = 1.10f
     private val DURATION = 450
 
     //模式
-    private var isOnlyCamera = false //是否只拍照
-    private var isAllowTakePhoto = true //选择照片是否有相机
-    private var mSelectMode = PictureConfig.MULTIPLE //图片是单选、多选
-    private val maxSelectNum: Int = 9 //最大选择数量
-    private val minSelectNum: Int = 1 //最小选择数量
+    private var isOnlyCamera = config.isOnlyCamera //是否只拍照
+    private var isCompress = config.isCompress //是否压缩
+    private var ignoreCompressSize: Int = config.compressSize  //忽略压缩的最小限制
+    private var isCrop = config.isCrop //是否剪切
+    private var isAllowTakePhoto = config.isAllowTakePhoto //选择照片是否有相机
+    private var selectedMode: Int = config.selectMode //图片是单选、多选
+    private var selectedMaxNum: Int = config.maxSelectNum //最大选择数量
+    private var selectedMinNum: Int = config.minSelectNum //最小选择数量
     private var selectImages = ArrayList<LocalMedia>() //被选中的图片
 
     //文件夹选择PopWindow
-    private lateinit var folderWindow: PopWindow
+    private lateinit var folderWindow: FolderPopWindow
     private var foldersList: List<LocalMediaFolder> = ArrayList()
 
     //拍照图片路径
     private var cameraPath: String? = null
     private var outputCameraPath: String? = null
 
+    //基础设置
+    private var previewTextColor = config.previewTextColor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_selector)
-        config = ImageConfig.getInstance()
-        folderWindow = PopWindow(this)
+        folderWindow = FolderPopWindow(this)
         selectedAnim = AnimationUtils.loadAnimation(this, R.anim.selected_image_num_in)
         if (isOnlyCamera) {
              startOpenCamera()
              return
-        }
-
-        PermissionsCheck.with(this)
-                .requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
-                .onPermissionsResult { deniedPermissions, allPermissions ->
-                    if (deniedPermissions.isEmpty()) {
-                        initAdapter()
-                    } else {
-                        toast("内存权限请求失败")
-                        closeActivity()
+        } else {
+            PermissionsCheck.with(this)
+                    .requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    .onPermissionsResult { deniedPermissions, allPermissions ->
+                        if (deniedPermissions.isEmpty()) {
+                            initAdapter()
+                        } else {
+                            toast("内存权限请求失败")
+                            closeActivity()
+                        }
                     }
-                }
+        }
+        initTopBar()
+    }
 
+
+    private fun initTopBar() {
         tv_image_selector_right.setOnClickListener {
-            val image = if (selectImages.size > 0) selectImages.get(0) else null
-            val pictureType = if (image != null) image.pictureType else ""
+
+            val pictureType = if (selectImages.size > 0)
+                selectImages[0].pictureType
+            else
+                ""
             // 如果设置了图片最小选择数量，则判断是否满足条件
-            val size = selectImages.size
-            val isImage = pictureType.startsWith(PictureConfig.IMAGE)
-            if (config.minSelectNum > 0 && config.selectMode === ImageConfig.SelectedMode.MULTI) {
-                if (size < config.minSelectNum) {
+            val isImage = pictureType.startsWith(ImageExtra.IMAGE) || pictureType == ""
+            if (selectedMinNum > 0 && selectedMode == ImageExtra.MULTI) {
+                if (selectImages.size < selectedMinNum) {
                     val str = if (isImage)
-                        "图片最低选择不能少于${minSelectNum}张"
+                        "图片最低选择不能少于${selectedMinNum}张"
                     else
-                        "视频最低选择不能少于${minSelectNum}个"
+                        "视频最低选择不能少于${selectedMinNum}个"
                     toast(str)
                     return@setOnClickListener
                 }
@@ -120,18 +131,19 @@ open class ImageSelectorActivity : AppCompatActivity() {
                      }
                      ImageCrop.startCrop(medias)
                  }
-             } else*/ if (config.isCompress && isImage) {
-            // 图片才压缩，视频不管
-            ImageCompress.luban(this, selectImages) {
-                onResult(it.toArrayList())
+             } else*/
+            if (isImage && isCompress) {
+                // 图片才压缩，视频不管
+                ImageCompress.luban(this, ignoreCompressSize, selectImages) {
+                    onResult(it.toArrayList())
+                }
+            } else {
+                onResult(selectImages)
             }
-        } else {
-            onResult(selectImages)
-        }
         }
 
 
-        folderArrow(R.drawable.arrow_up)
+        folderArrow(R.drawable.arrow_down)
         tv_image_selector_title.setOnClickListener {
             folderArrow(R.drawable.arrow_up)
             folderWindow.showAsDropDown(it)
@@ -139,7 +151,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
         folderWindow.setOnDismissListener {
             folderArrow(R.drawable.arrow_down)
         }
-        folderWindow.setItemClickListener(object : PopWindow.OnItemClickListener {
+        folderWindow.setItemClickListener(object : FolderPopWindow.OnItemClickListener {
             override fun onItemClicked(bean: LocalMediaFolder) {
                 previewList = bean.images
                 val list = arrayListOf<Any>()
@@ -152,7 +164,10 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
             }
         })
+
+
     }
+
 
     private fun initAdapter() {
         picture_recycler.setHasFixedSize(true)
@@ -180,7 +195,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                 }
                                 .with<ImageView>(R.id.iv_image_selector_state) {
                                     it.isSelected = localMedia.isChecked
-                                    if (mSelectMode == PictureConfig.SINGLE && localMedia.isChecked) {
+                                    if (selectedMode == ImageExtra.SINGLE && localMedia.isChecked) {
                                         lastTimeSelectedInjector = viewInjector
                                         lastTimeSelectedLocalMedia = localMedia
                                     }
@@ -198,12 +213,12 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                         }
                                     }
                                     //达到最大选择数，点击未选中的ImageView
-                                    if (selectImages.size >= maxSelectNum && !isChecked) {
-                                        val eqImg = pictureType.startsWith(PictureConfig.IMAGE)
+                                    if (selectImages.size >= selectedMaxNum && !isChecked) {
+                                        val eqImg = pictureType.startsWith(ImageExtra.IMAGE)
                                         val str = if (eqImg)
-                                            "你最多可以选择${maxSelectNum}张图片"
+                                            "你最多可以选择${selectedMaxNum}张图片"
                                         else
-                                            "你最多可以选择${maxSelectNum}个视频"
+                                            "你最多可以选择${selectedMaxNum}个视频"
                                         toast(str)
                                         return@clicked
                                     }
@@ -213,7 +228,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
                                     if (stateImageView.isSelected) {
                                         // 如果是单选，则清空已选中的并刷新列表(作单一选择)
-                                        if (mSelectMode == PictureConfig.SINGLE) {
+                                        if (selectedMode == ImageExtra.SINGLE) {
                                             singleMediaImage()
                                             lastTimeSelectedInjector = viewInjector
                                             lastTimeSelectedLocalMedia = localMedia
@@ -221,29 +236,38 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                         stateImageView.startAnimation(selectedAnim)
                                         selectImages.add(localMedia)
                                         localMedia.num = selectImages.size
-                                        if (isNeedAnim) {
+                                        if (isSelectedImageAnim) {
                                             scaleAnim(imageView, originalSize, zoomSize)
                                             imageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_true), PorterDuff.Mode.SRC_ATOP)
                                         }
                                     } else {
                                         selectImages.remove(localMedia)
-                                        if (isNeedAnim) {
+                                        if (isSelectedImageAnim) {
                                             scaleAnim(imageView, zoomSize, originalSize)
                                             imageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
                                         }
                                     }
 
+                                    //预览
+                                    id_ll_ok.setOnClickListener {
+                                        if (selectImages.size > 0) {
+                                            startActivity<ImagePreviewActivity>(ImageExtra.IMAGE_LIST to selectImages)
+                                        } else {
+                                            toast("请选择要预览的图片")
+                                        }
+
+                                    }
                                     if (selectImages.size > 0) {
                                         tv_img_num.visibility = View.VISIBLE
                                         tv_img_num.text = selectImages.size.toString()
                                         tv_img_num.startAnimation(selectedAnim)
-                                        id_ll_ok.setOnClickListener {
-                                            if (selectImages.size > 0)
-                                                startActivity<ImagePreviewActivity>(ImageExtra.IMAGE_LIST to selectImages)
-                                        }
+                                        tv_ok.text = "预览"
+                                        tv_ok.textColor = ContextCompat.getColor(this, previewTextColor)
                                     } else {
                                         tv_img_num.text = "0"
                                         tv_img_num.visibility = View.GONE
+                                        tv_ok.text = "请选择"
+                                        tv_ok.textColor = 0xff999999.toInt()
                                     }
                                 }
                                 .clicked {
@@ -262,8 +286,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
                     }
                     .register<Camera>(R.layout.layout_item_camera) { viewInjector, localMedia, i ->
                         viewInjector.clicked {
-                            if (selectImages.size >= maxSelectNum) {
-                                toast("你最多可以选择${maxSelectNum}张图片")
+                            if (selectImages.size >= selectedMaxNum) {
+                                toast("你最多可以选择${selectedMaxNum}张图片")
                                 return@clicked
                             }
                             startOpenCamera()
@@ -288,14 +312,14 @@ open class ImageSelectorActivity : AppCompatActivity() {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.READ_EXTERNAL_STORAGE)
                 .onPermissionsResult { deniedPermissions, allPermissions ->
-                    if (deniedPermissions.size == 0) {
+                    if (deniedPermissions.isEmpty()) {
                         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
                         if (cameraIntent.resolveActivity(packageManager) != null) {
-                            val cameraFile = PictureFileUtils.createCameraFile(this, PictureConfig.TYPE_IMAGE, outputCameraPath, PictureFileUtils.POSTFIX)
+                            val cameraFile = PictureFileUtils.createCameraFile(this, ImageExtra.TYPE_IMAGE, outputCameraPath, PictureFileUtils.POSTFIX)
                             cameraPath = cameraFile.absolutePath
                             val imageUri = parUri(cameraFile)
                             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-                            startActivityForResult(cameraIntent, PictureConfig.REQUEST_CAMERA)
+                            startActivityForResult(cameraIntent, ImageExtra.REQUEST_CAMERA)
                         }
                     } else {
                         deniedPermissions.forEach {
@@ -339,7 +363,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
             selectImages.clear()
             val lastTimeSelectedImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_selector_picture)
             val lastTimeSelectedStateImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_selector_state)
-            if (isNeedAnim) {
+            if (isSelectedImageAnim) {
                 scaleAnim(lastTimeSelectedImageView, zoomSize, originalSize)
                 lastTimeSelectedImageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
             }
@@ -432,7 +456,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && PictureConfig.REQUEST_CAMERA == requestCode) {
+        if (resultCode == Activity.RESULT_OK && ImageExtra.REQUEST_CAMERA == requestCode) {
             try {
                 val file = File(cameraPath)
                 //启动MediaScanner服务，扫描媒体文件
@@ -442,7 +466,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
             }
 
             //单选
-            if (mSelectMode == PictureConfig.SINGLE) {
+            if (selectedMode == ImageExtra.SINGLE) {
                 singleMediaImage()
             }
 
@@ -453,7 +477,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
             media.pictureType = pictureType
             media.duration = 0
             media.isChecked = true
-            media.mimeType = PictureConfig.TYPE_IMAGE
+            media.mimeType = ImageExtra.TYPE_IMAGE
             selectImages.add(media)
 
             adapter.addData(1, media)
@@ -472,7 +496,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
      */
     private fun onResult(images: ArrayList<LocalMedia>) {
         /*dismissCompressDialog()
-        if (config.camera && config.selectionMode === PictureConfig.MULTIPLE && selectionMedias != null) {
+        if (config.camera && config.selectionMode == PictureConfig.MULTIPLE && selectionMedias != null) {
             images.addAll(if (images.size > 0) images.size - 1 else 0, selectionMedias)
         }*/
         val intent = Intent()
@@ -494,6 +518,5 @@ open class ImageSelectorActivity : AppCompatActivity() {
     }
 
     private class Camera
-
 
 }

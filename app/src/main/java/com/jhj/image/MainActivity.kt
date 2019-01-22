@@ -21,13 +21,13 @@ class MainActivity : AppCompatActivity() {
         )
 
         btn_preview.setOnClickListener {
-            ImageSelector.init(this)
+            ImageSelector.with(this)
                     .imagePreview(list)
         }
 
 
         btn_selector.setOnClickListener {
-            ImageSelector.init(this)
+            ImageSelector.with(this)
                     .imageSelected {
                         val a = it;
                         val b = a;

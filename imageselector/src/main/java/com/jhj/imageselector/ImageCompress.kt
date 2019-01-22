@@ -9,10 +9,10 @@ import com.jhj.imageselector.compress.OnCompressListener
  */
 object ImageCompress {
 
-    fun luban(context: Context, path: List<LocalMedia>, onResult: (List<LocalMedia>) -> Unit) {
+    fun luban(context: Context, size: Int, path: List<LocalMedia>, onResult: (List<LocalMedia>) -> Unit) {
         Luban.with(context)
                 .loadLocalMedia(path)
-                .ignoreBy(100)
+                .ignoreBy(size)
                 .setTargetDir("")
                 .setCompressListener(
                         object : OnCompressListener {

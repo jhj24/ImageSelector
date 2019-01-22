@@ -5,4 +5,5 @@
 
     <color name="transparent_white">#F0FFFFFF</color>
     <color name="transparent_db">#E0DBDBDB</color>
+    <color name="orange">#E0FF6100</color>
 </resources>

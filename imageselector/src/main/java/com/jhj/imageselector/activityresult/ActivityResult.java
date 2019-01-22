@@ -201,16 +201,21 @@ public final class ActivityResult {
         FragmentManager fragmentManager = mActivity.getFragmentManager();
         OnResultFragment fragment = (OnResultFragment) fragmentManager.findFragmentByTag(TAG);
 
-        if (fragment == null) {
-            fragment = new OnResultFragment();
-            fragmentManager
-                    .beginTransaction()
-                    .add(fragment, TAG)
-                    .commitAllowingStateLoss();
-            fragmentManager.executePendingTransactions();
-        }
-        if (targetActivity != null) {
-            fragment.startActivityForResult(targetActivity, bundle, listener);
+        try {
+            if (fragment == null) {
+                fragment = new OnResultFragment();
+                fragmentManager
+                        .beginTransaction()
+                        .add(fragment, TAG)
+                        .commitAllowingStateLoss();
+                fragmentManager.executePendingTransactions();
+            }
+            if (targetActivity != null) {
+                fragment.startActivityForResult(targetActivity, bundle, listener);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

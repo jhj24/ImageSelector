@@ -18,14 +18,14 @@ public class ImageSelector {
         this.mActivity = activity;
     }
 
-    public static ImageSelector init(Activity activity) {
+    public static ImageSelector with(Activity activity) {
         return new ImageSelector(activity);
     }
 
     public void imageSelected(final OnImageSelectedListener listener) {
         ActivityResult.with(mActivity)
                 .targetActivity(ImageSelectorActivity.class)
-                .putInt(ImageExtra.EXTRA_SELECTED_MODE, 1)
+                .putInt(ImageExtra.EXTRA_SELECTED_MODE, ImageExtra.MULTI)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9)
                 .putInt(ImageExtra.EXTRA_SELECTED_MIN_NUM, 1)
                 .onResult(new ActivityResult.OnActivityResultListener() {
