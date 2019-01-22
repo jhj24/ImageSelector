@@ -76,13 +76,13 @@ open class ImageSelectorActivity : AppCompatActivity() {
         setContentView(R.layout.activity_image_selector)
         config = ImageConfig.getInstance()
         folderWindow = PopWindow(this)
-        selectedAnim = AnimationUtils.loadAnimation(this, R.anim.modal_in)
+        selectedAnim = AnimationUtils.loadAnimation(this, R.anim.selected_image_num_in)
         if (isOnlyCamera) {
              startOpenCamera()
              return
         }
 
-        PermissionsCheck.init(this)
+        PermissionsCheck.with(this)
                 .requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
                 .onPermissionsResult { deniedPermissions, allPermissions ->
                     if (deniedPermissions.isEmpty()) {
@@ -238,7 +238,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                         tv_img_num.text = selectImages.size.toString()
                                         tv_img_num.startAnimation(selectedAnim)
                                         id_ll_ok.setOnClickListener {
-                                            startActivity<ImagePreviewActivity>(ImageExtra.IMAGE_LIST to selectImages)
+                                            if (selectImages.size > 0)
+                                                startActivity<ImagePreviewActivity>(ImageExtra.IMAGE_LIST to selectImages)
                                         }
                                     } else {
                                         tv_img_num.text = "0"
@@ -250,7 +251,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                     if (isAllowTakePhoto && adapter.dataList[0] is Camera) {
                                         index = i - 1
                                     }
-                                    ActivityResult.init(this)
+                                    ActivityResult.with(this)
                                             .putSerializable(ImageExtra.IMAGE_LIST, previewList.toArrayList())
                                             .putInt(ImageExtra.IMAGE_INDEX, index)
                                             .targetActivity(ImagePreviewActivity::class.java)
@@ -282,7 +283,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
 
     private fun startOpenCamera() {
-        PermissionsCheck.init(this)
+        PermissionsCheck.with(this)
                 .requestPermissions(Manifest.permission.CAMERA,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.READ_EXTERNAL_STORAGE)

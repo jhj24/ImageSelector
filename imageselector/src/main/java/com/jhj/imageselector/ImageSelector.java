@@ -7,35 +7,23 @@ import com.jhj.imageselector.activityresult.ActivityResult;
 import com.jhj.imageselector.ui.ImagePreviewActivity;
 import com.jhj.imageselector.ui.ImageSelectorActivity;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ImageSelector {
 
-    private static volatile ImageSelector singleton;
+    private final Activity mActivity;
 
-    private WeakReference<Activity> weakReference;
-
-    private ImageSelector(Activity context) {
-        weakReference = new WeakReference<Activity>(context);
+    private ImageSelector(Activity activity) {
+        this.mActivity = activity;
     }
 
-    public static ImageSelector getInstance(Activity context) {
-        if (singleton == null) {
-            synchronized (ImageSelector.class) {
-                if (singleton == null) {
-                    singleton = new ImageSelector(context);
-                }
-            }
-        }
-        return singleton;
+    public static ImageSelector init(Activity activity) {
+        return new ImageSelector(activity);
     }
 
     public void imageSelected(final OnImageSelectedListener listener) {
-        if (isContextNull()) return;
-        Activity context = weakReference.get();
-        ActivityResult.init(context)
+        ActivityResult.with(mActivity)
                 .targetActivity(ImageSelectorActivity.class)
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, 1)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9)
@@ -57,9 +45,7 @@ public class ImageSelector {
 
 
     public void imageSelected(int selectedMode, int selectedMaxNum, int selectedMinNum, final OnImageSelectedListener listener) {
-        if (isContextNull()) return;
-        Activity context = weakReference.get();
-        ActivityResult.init(context)
+        ActivityResult.with(mActivity)
                 .targetActivity(ImageSelectorActivity.class)
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, selectedMode)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, selectedMaxNum)
@@ -83,19 +69,14 @@ public class ImageSelector {
     }
 
     public void imagePreview(List<ImageModel> imageList, int currentIndex, boolean isDelete) {
-        if (isContextNull()) return;
-        Activity context = weakReference.get();
-        Intent intent = new Intent(context, ImagePreviewActivity.class);
+        Intent intent = new Intent(mActivity, ImagePreviewActivity.class);
         intent.putExtra(ImageExtra.IMAGE_LIST, toArrayList(imageList));
         intent.putExtra(ImageExtra.IMAGE_INDEX, currentIndex);
         intent.putExtra(ImageExtra.IMAGE_IS_DELETE, isDelete);
-        context.startActivity(intent);
+        mActivity.startActivity(intent);
 
     }
 
-    private boolean isContextNull() {
-        return weakReference.get() == null;
-    }
 
     private ArrayList<ImageModel> toArrayList(List<ImageModel> list) {
         return new ArrayList<>(list);

@@ -16,7 +16,7 @@ public final class PermissionsCheck {
         this.mActivity = new WeakReference<>(mActivity);
     }
 
-    public static PermissionsCheck init(Activity activity) {
+    public static PermissionsCheck with(Activity activity) {
         return new PermissionsCheck(activity);
     }
 

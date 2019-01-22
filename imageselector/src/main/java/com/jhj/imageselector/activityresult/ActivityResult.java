@@ -20,7 +20,7 @@ public final class ActivityResult {
         this.mActivity = activity;
     }
 
-    public static ActivityResult init(Activity activity) {
+    public static ActivityResult with(Activity activity) {
         return new ActivityResult(activity);
     }
 
