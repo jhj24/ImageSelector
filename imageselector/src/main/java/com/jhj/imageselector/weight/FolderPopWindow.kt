@@ -20,7 +20,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import com.jhj.imageselector.LocalMediaFolder
+import com.jhj.imageselector.bean.LocalMediaFolder
 import com.jhj.imageselector.R
 import com.jhj.slimadapter.SlimAdapter
 import kotlinx.android.synthetic.main.layout_picture_window_folder.view.*

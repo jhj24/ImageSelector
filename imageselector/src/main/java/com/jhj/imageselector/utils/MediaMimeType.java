@@ -1,9 +1,12 @@
-package com.jhj.imageselector;
+package com.jhj.imageselector.utils;
 
 
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
 import android.text.TextUtils;
+
+import com.jhj.imageselector.bean.LocalMedia;
+import com.jhj.imageselector.config.ImageExtra;
 
 import java.io.File;
 
@@ -19,19 +22,19 @@ import java.io.File;
 
 public final class MediaMimeType {
     public static int ofAll() {
-        return PictureConfig.TYPE_ALL;
+        return ImageExtra.TYPE_ALL;
     }
 
     public static int ofImage() {
-        return PictureConfig.TYPE_IMAGE;
+        return ImageExtra.TYPE_IMAGE;
     }
 
     public static int ofVideo() {
-        return PictureConfig.TYPE_VIDEO;
+        return ImageExtra.TYPE_VIDEO;
     }
 
     public static int ofAudio() {
-        return PictureConfig.TYPE_AUDIO;
+        return ImageExtra.TYPE_AUDIO;
     }
 
     public static int isPictureType(String pictureType) {
@@ -46,7 +49,7 @@ public final class MediaMimeType {
             case "image/bmp":
             case "image/GIF":
             case "imagex-ms-bmp":
-                return PictureConfig.TYPE_IMAGE;
+                return ImageExtra.TYPE_IMAGE;
             case "video/3gp":
             case "video/3gpp":
             case "video/3gpp2":
@@ -58,7 +61,7 @@ public final class MediaMimeType {
             case "video/mpeg":
             case "video/webm":
             case "video/mp2ts":
-                return PictureConfig.TYPE_VIDEO;
+                return ImageExtra.TYPE_VIDEO;
             case "audio/mpeg":
             case "audio/x-ms-wma":
             case "audio/x-wav":
@@ -69,9 +72,9 @@ public final class MediaMimeType {
             case "audio/quicktime":
             case "audio/lamr":
             case "audio/3gpp":
-                return PictureConfig.TYPE_AUDIO;
+                return ImageExtra.TYPE_AUDIO;
         }
-        return PictureConfig.TYPE_IMAGE;
+        return ImageExtra.TYPE_IMAGE;
     }
 
     /**
@@ -222,12 +225,12 @@ public final class MediaMimeType {
     public static int pictureToVideo(String pictureType) {
         if (!TextUtils.isEmpty(pictureType)) {
             if (pictureType.startsWith("video")) {
-                return PictureConfig.TYPE_VIDEO;
+                return ImageExtra.TYPE_VIDEO;
             } else if (pictureType.startsWith("audio")) {
-                return PictureConfig.TYPE_AUDIO;
+                return ImageExtra.TYPE_AUDIO;
             }
         }
-        return PictureConfig.TYPE_IMAGE;
+        return ImageExtra.TYPE_IMAGE;
     }
 
     /**
@@ -308,11 +311,11 @@ public final class MediaMimeType {
     public static String s(Context context, int mediaMimeType) {
         Context ctx = context.getApplicationContext();
         switch (mediaMimeType) {
-            case PictureConfig.TYPE_IMAGE:
+            case ImageExtra.TYPE_IMAGE:
                 return "图片已损坏";
-            case PictureConfig.TYPE_VIDEO:
+            case ImageExtra.TYPE_VIDEO:
                 return "视频已损坏";
-            case PictureConfig.TYPE_AUDIO:
+            case ImageExtra.TYPE_AUDIO:
                 return "音频已损坏";
             default:
                 return "图片已损坏";

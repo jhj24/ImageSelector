@@ -1,7 +1,7 @@
 package com.jhj.imageselector.compress;
 
 
-import com.jhj.imageselector.LocalMedia;
+import com.jhj.imageselector.bean.LocalMedia;
 
 import java.util.List;
 

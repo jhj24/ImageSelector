@@ -1,4 +1,4 @@
-package com.jhj.imageselector
+package com.jhj.imageselector.utils
 
 import android.app.Activity
 import android.net.Uri

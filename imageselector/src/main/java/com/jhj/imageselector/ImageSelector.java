@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 
 import com.jhj.imageselector.activityresult.ActivityResult;
+import com.jhj.imageselector.bean.LocalMedia;
 import com.jhj.imageselector.ui.ImagePreviewActivity;
 import com.jhj.imageselector.ui.ImageSelectorActivity;
+import com.jhj.imageselector.config.ImageExtra;
+import com.jhj.imageselector.utils.ExtensionKt;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ImageSelector {
@@ -37,8 +39,6 @@ public class ImageSelector {
                                 listener.onSelected((List<LocalMedia>) ob);
                             }
                         }
-
-
                     }
                 });
     }
@@ -60,26 +60,22 @@ public class ImageSelector {
     }
 
 
-    public void imagePreview(List<ImageModel> imageList) {
+    public void imagePreview(List<LocalMedia> imageList) {
         imagePreview(imageList, 0);
     }
 
-    public void imagePreview(List<ImageModel> imageList, int currentIndex) {
+    public void imagePreview(List<LocalMedia> imageList, int currentIndex) {
         imagePreview(imageList, currentIndex, false);
     }
 
-    public void imagePreview(List<ImageModel> imageList, int currentIndex, boolean isDelete) {
+    public void imagePreview(List<LocalMedia> imageList, int currentIndex, boolean isDelete) {
+
         Intent intent = new Intent(mActivity, ImagePreviewActivity.class);
-        intent.putExtra(ImageExtra.IMAGE_LIST, toArrayList(imageList));
+        intent.putExtra(ImageExtra.IMAGE_LIST, ExtensionKt.toArrayList(imageList));
         intent.putExtra(ImageExtra.IMAGE_INDEX, currentIndex);
         intent.putExtra(ImageExtra.IMAGE_IS_DELETE, isDelete);
         mActivity.startActivity(intent);
 
-    }
-
-
-    private ArrayList<ImageModel> toArrayList(List<ImageModel> list) {
-        return new ArrayList<>(list);
     }
 
     public interface OnImageSelectedListener {

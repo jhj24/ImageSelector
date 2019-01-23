@@ -1,6 +1,7 @@
-package com.jhj.imageselector
+package com.jhj.imageselector.utils
 
 import android.content.Context
+import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.compress.Luban
 import com.jhj.imageselector.compress.OnCompressListener
 

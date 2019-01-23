@@ -1,4 +1,4 @@
-package com.jhj.imageselector
+package com.jhj.imageselector.config
 
 /**
  * Created by jhj on 19-1-15.

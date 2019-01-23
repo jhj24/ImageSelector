@@ -1,4 +1,9 @@
-package com.jhj.imageselector;
+package com.jhj.imageselector.config;
+
+import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
+
+import com.jhj.imageselector.R;
 
 public class ImageConfig {
 
@@ -18,18 +23,26 @@ public class ImageConfig {
         return singleton;
     }
 
+    @ColorRes
     public int colorPrimaryDark; //状态栏背景色
+    @ColorRes
     public int colorPrimary; //标题栏背景色
-    public int icLeftBack; //返回键图标
-    public int titleArrowUp; //标题上拉箭头
-    public int titleArrowDown; //标题下拉箭头
-    public int titleTextColor; //标题文字颜色
-    public int titleTextSize; //标题文字大小
-    public int rightTextColor; //右边文字颜色
-    public int rightTextSize; //右边文字大小
-    public int icSelected; //图片选中时图标
-    public int icUnSelected; // 图片未选中时图标
-    public int bottomBackground; //底图预览背景色
+    @DrawableRes
+    public int titleLeftBackImage = R.drawable.arrow_back; //返回键图标
+    @DrawableRes
+    public int titleArrowUpImage = R.drawable.arrow_up; //标题上拉箭头
+    @DrawableRes
+    public int titleArrowDownImage = R.drawable.arrow_down; //标题下拉箭头
+    @ColorRes
+    public int titleTextColor = R.color.white; //标题文字颜色
+    @ColorRes
+    public int rightTextColor = R.color.white; //右边文字颜色
+    @DrawableRes
+    public int selectedStateImage = R.drawable.image_checked; //图片选中时图标
+    @DrawableRes
+    public int unSelectedStateImage = R.drawable.image_unchecked; // 图片未选中时图标
+    public int bottomBackgroundColor; //底图预览背景色
+    @ColorRes
     public int previewTextColor = R.color.orange; //预览字体背景色
     public int selectedNumBackground;//图片已选数量圆点背景色
 

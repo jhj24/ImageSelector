@@ -23,10 +23,15 @@ public final class OnResultFragment extends Fragment {
         startActivityForResult(intent, ACTIVITY_CODE);
     }
 
+    void startActivityForResult(Intent intent, ActivityResult.OnActivityResultListener listener) {
+        this.listener = listener;
+        startActivityForResult(intent, ACTIVITY_CODE);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ACTIVITY_CODE) {
+        if (requestCode == ACTIVITY_CODE && listener != null) {
             listener.onResult(data);
         }
     }

@@ -13,8 +13,9 @@ import java.util.ArrayList;
 public final class ActivityResult {
 
     private Activity mActivity;
-    private Class<? extends Activity> targetActivity;
-    private Bundle bundle = new Bundle();
+    private Class<? extends Activity> mTargetActivity;
+    private Bundle mBundle = new Bundle();
+    private Intent mIntent;
 
     private ActivityResult(Activity activity) {
         this.mActivity = activity;
@@ -25,170 +26,175 @@ public final class ActivityResult {
     }
 
     public ActivityResult putByte(String key, byte value) {
-        bundle.putByte(key, value);
+        mBundle.putByte(key, value);
         return this;
     }
 
 
     public ActivityResult putChar(String key, char value) {
-        bundle.putChar(key, value);
+        mBundle.putChar(key, value);
         return this;
     }
 
     public ActivityResult putShort(String key, short value) {
-        bundle.putShort(key, value);
+        mBundle.putShort(key, value);
         return this;
     }
 
     public ActivityResult putInt(String key, int value) {
-        bundle.putInt(key, value);
+        mBundle.putInt(key, value);
         return this;
     }
 
 
     public ActivityResult putFloat(String key, float value) {
-        bundle.putFloat(key, value);
+        mBundle.putFloat(key, value);
         return this;
     }
 
     public ActivityResult putDouble(String key, Double value) {
-        bundle.putDouble(key, value);
+        mBundle.putDouble(key, value);
         return this;
     }
 
     public ActivityResult putLong(String key, Long value) {
-        bundle.putLong(key, value);
+        mBundle.putLong(key, value);
         return this;
     }
 
     public ActivityResult putString(String key, String value) {
-        bundle.putString(key, value);
+        mBundle.putString(key, value);
         return this;
     }
 
     public ActivityResult putBoolean(String key, boolean value) {
-        bundle.putBoolean(key, value);
+        mBundle.putBoolean(key, value);
         return this;
     }
 
     public ActivityResult putCharSequence(String key, CharSequence value) {
-        bundle.putCharSequence(key, value);
+        mBundle.putCharSequence(key, value);
         return this;
     }
 
     public ActivityResult putParcelable(String key, Parcelable value) {
-        bundle.putParcelable(key, value);
+        mBundle.putParcelable(key, value);
         return this;
     }
 
     public ActivityResult putDoubleArray(String key, double[] value) {
-        bundle.putDoubleArray(key, value);
+        mBundle.putDoubleArray(key, value);
         return this;
     }
 
     public ActivityResult putLongArray(String key, long[] value) {
-        bundle.putLongArray(key, value);
+        mBundle.putLongArray(key, value);
         return this;
     }
 
     public ActivityResult putIntArray(String key, int[] value) {
-        bundle.putIntArray(key, value);
+        mBundle.putIntArray(key, value);
         return this;
     }
 
     public ActivityResult putBooleanArray(String key, boolean[] value) {
-        bundle.putBooleanArray(key, value);
+        mBundle.putBooleanArray(key, value);
         return this;
     }
 
     public ActivityResult putStringArray(String key, String[] value) {
-        bundle.putStringArray(key, value);
+        mBundle.putStringArray(key, value);
         return this;
     }
 
     public ActivityResult putParcelableArray(String key, Parcelable[] value) {
-        bundle.putParcelableArray(key, value);
+        mBundle.putParcelableArray(key, value);
         return this;
     }
 
     public ActivityResult putParcelableArrayList(String key,
                                                  ArrayList<? extends Parcelable> value) {
-        bundle.putParcelableArrayList(key, value);
+        mBundle.putParcelableArrayList(key, value);
         return this;
     }
 
 
     public ActivityResult putSparseParcelableArray(String key,
                                                    SparseArray<? extends Parcelable> value) {
-        bundle.putSparseParcelableArray(key, value);
+        mBundle.putSparseParcelableArray(key, value);
         return this;
     }
 
     public ActivityResult putIntegerArrayList(String key, ArrayList<Integer> value) {
-        bundle.putIntegerArrayList(key, value);
+        mBundle.putIntegerArrayList(key, value);
         return this;
     }
 
     public ActivityResult putStringArrayList(String key, ArrayList<String> value) {
-        bundle.putStringArrayList(key, value);
+        mBundle.putStringArrayList(key, value);
         return this;
     }
 
 
     public ActivityResult putCharSequenceArrayList(String key,
                                                    ArrayList<CharSequence> value) {
-        bundle.putCharSequenceArrayList(key, value);
+        mBundle.putCharSequenceArrayList(key, value);
         return this;
     }
 
     public ActivityResult putSerializable(String key, Serializable value) {
-        bundle.putSerializable(key, value);
+        mBundle.putSerializable(key, value);
         return this;
     }
 
     public ActivityResult putByteArray(String key, byte[] value) {
-        bundle.putByteArray(key, value);
+        mBundle.putByteArray(key, value);
         return this;
     }
 
 
     public ActivityResult putShortArray(String key, short[] value) {
-        bundle.putShortArray(key, value);
+        mBundle.putShortArray(key, value);
         return this;
     }
 
 
     public ActivityResult putCharArray(String key, char[] value) {
-        bundle.putCharArray(key, value);
+        mBundle.putCharArray(key, value);
         return this;
     }
 
 
     public ActivityResult putFloatArray(String key, float[] value) {
-        bundle.putFloatArray(key, value);
+        mBundle.putFloatArray(key, value);
         return this;
     }
 
 
     public ActivityResult putCharSequenceArray(String key, CharSequence[] value) {
-        bundle.putCharSequenceArray(key, value);
+        mBundle.putCharSequenceArray(key, value);
         return this;
     }
 
 
     public ActivityResult putBundle(String key, Bundle value) {
-        bundle.putBundle(key, value);
+        mBundle.putBundle(key, value);
         return this;
     }
 
     public ActivityResult putAll(Bundle bundle) {
-        this.bundle.putAll(bundle);
+        this.mBundle.putAll(bundle);
+        return this;
+    }
+
+    public ActivityResult targentIntent(Intent intent) {
+        this.mIntent = intent;
         return this;
     }
 
 
     public ActivityResult targetActivity(Class<? extends Activity> targetActivity) {
-        this.targetActivity = targetActivity;
+        this.mTargetActivity = targetActivity;
         return this;
     }
 
@@ -210,10 +216,11 @@ public final class ActivityResult {
                         .commitAllowingStateLoss();
                 fragmentManager.executePendingTransactions();
             }
-            if (targetActivity != null) {
-                fragment.startActivityForResult(targetActivity, bundle, listener);
+            if (mTargetActivity != null) {
+                fragment.startActivityForResult(mTargetActivity, mBundle, listener);
+            } else if (mIntent != null) {
+                fragment.startActivityForResult(mIntent,listener);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }

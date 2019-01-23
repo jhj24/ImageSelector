@@ -1,4 +1,4 @@
-package com.jhj.imageselector;
+package com.jhj.imageselector.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;

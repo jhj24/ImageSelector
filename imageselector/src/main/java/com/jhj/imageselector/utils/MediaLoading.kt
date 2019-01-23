@@ -1,4 +1,4 @@
-package com.jhj.imageselector
+package com.jhj.imageselector.utils
 
 import android.database.Cursor
 import android.os.Bundle
@@ -7,6 +7,9 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.app.LoaderManager
 import android.support.v4.content.CursorLoader
 import android.support.v4.content.Loader
+import com.jhj.imageselector.bean.LocalMedia
+import com.jhj.imageselector.bean.LocalMediaFolder
+import com.jhj.imageselector.config.ImageExtra
 import java.io.File
 import java.util.*
 
@@ -20,7 +23,7 @@ object MediaLoading {
     private val ORDER_BY = MediaStore.Files.FileColumns._ID + " DESC"
     private val NOT_GIF = "!='image/gif'"
     private val DURATION = "duration"
-    private val type = PictureConfig.TYPE_IMAGE
+    private val type = ImageExtra.TYPE_IMAGE
 
     // 媒体文件数据库字段
     private val PROJECTION = arrayOf(

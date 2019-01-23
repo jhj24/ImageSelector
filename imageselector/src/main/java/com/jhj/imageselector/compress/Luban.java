@@ -11,9 +11,9 @@ import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.jhj.imageselector.LocalMedia;
-import com.jhj.imageselector.MediaMimeType;
-import com.jhj.imageselector.PictureFileUtils;
+import com.jhj.imageselector.bean.LocalMedia;
+import com.jhj.imageselector.utils.MediaMimeType;
+import com.jhj.imageselector.utils.PictureFileUtils;
 
 import java.io.File;
 import java.io.IOException;

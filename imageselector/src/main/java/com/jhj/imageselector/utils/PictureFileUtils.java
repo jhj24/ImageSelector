@@ -1,4 +1,4 @@
-package com.jhj.imageselector;
+package com.jhj.imageselector.utils;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
@@ -22,6 +22,8 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.jhj.imageselector.config.ImageExtra;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -91,11 +93,11 @@ public class PictureFileUtils {
         File tmpFile = null;
         String suffixType;
         switch (type) {
-            case PictureConfig.TYPE_IMAGE:
+            case ImageExtra.TYPE_IMAGE:
                 suffixType = TextUtils.isEmpty(format) ? POSTFIX : format;
                 tmpFile = new File(folderDir, fileName + suffixType);
                 break;
-            case PictureConfig.TYPE_VIDEO:
+            case ImageExtra.TYPE_VIDEO:
                 tmpFile = new File(folderDir, fileName + POST_VIDEO);
                 break;
         }

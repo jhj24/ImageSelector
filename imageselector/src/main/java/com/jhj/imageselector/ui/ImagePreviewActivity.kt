@@ -10,8 +10,8 @@ import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.jhj.imageselector.ImageExtra
-import com.jhj.imageselector.LocalMedia
+import com.jhj.imageselector.config.ImageExtra
+import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.R
 import kotlinx.android.synthetic.main.activity_image_view_pager.*
 import uk.co.senab.photoview.PhotoView

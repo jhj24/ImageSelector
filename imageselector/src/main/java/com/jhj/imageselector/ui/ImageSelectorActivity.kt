@@ -20,9 +20,15 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.jhj.imageselector.*
+import com.jhj.imageselector.GridSpacingItemDecoration
+import com.jhj.imageselector.R
 import com.jhj.imageselector.activityresult.ActivityResult
+import com.jhj.imageselector.bean.LocalMedia
+import com.jhj.imageselector.bean.LocalMediaFolder
+import com.jhj.imageselector.config.ImageConfig
+import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.permissions.PermissionsCheck
+import com.jhj.imageselector.utils.*
 import com.jhj.imageselector.weight.FolderPopWindow
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
@@ -76,6 +82,14 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
     //基础设置
     private var previewTextColor = config.previewTextColor
+    private var topBarBackImage = config.titleLeftBackImage
+    private var titleTextColor = config.titleTextColor
+    private var rightTextColor = config.rightTextColor
+    private var titleArrowDownImage = config.titleArrowDownImage
+    private var titleArrowUpImage = config.titleArrowUpImage
+    private var selectedStateImage = config.selectedStateImage
+    private var unSelectedStateImage = config.unSelectedStateImage
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +116,35 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
 
     private fun initTopBar() {
+        iv_image_selector_back.setImageDrawable(getImgDrawable(topBarBackImage))
+        iv_image_selector_back.setOnClickListener { closeActivity() }
+
+        tv_image_selector_title.textColor = getTColor(titleTextColor)
+        tv_image_selector_title.compoundDrawablePadding = 10
+        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getImgDrawable(titleArrowDownImage), null)
+        tv_image_selector_title.setOnClickListener {
+            tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getImgDrawable(titleArrowUpImage), null)
+            folderWindow.showAsDropDown(it)
+        }
+        folderWindow.setOnDismissListener {
+            tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getImgDrawable(titleArrowDownImage), null)
+        }
+        folderWindow.setItemClickListener(object : FolderPopWindow.OnItemClickListener {
+            override fun onItemClicked(bean: LocalMediaFolder) {
+                previewList = bean.images
+                val list = arrayListOf<Any>()
+                if (bean.name == "相机胶卷" && isAllowTakePhoto) {
+                    list.add(Camera())
+                }
+                list.addAll(bean.images)
+                adapter.dataList = list
+                tv_image_selector_title.text = bean.name
+
+            }
+        })
+
+
+        tv_image_selector_right.textColor = getTColor(rightTextColor)
         tv_image_selector_right.setOnClickListener {
 
             val pictureType = if (selectImages.size > 0)
@@ -143,29 +186,6 @@ open class ImageSelectorActivity : AppCompatActivity() {
         }
 
 
-        folderArrow(R.drawable.arrow_down)
-        tv_image_selector_title.setOnClickListener {
-            folderArrow(R.drawable.arrow_up)
-            folderWindow.showAsDropDown(it)
-        }
-        folderWindow.setOnDismissListener {
-            folderArrow(R.drawable.arrow_down)
-        }
-        folderWindow.setItemClickListener(object : FolderPopWindow.OnItemClickListener {
-            override fun onItemClicked(bean: LocalMediaFolder) {
-                previewList = bean.images
-                val list = arrayListOf<Any>()
-                if (bean.name == "相机胶卷" && isAllowTakePhoto) {
-                    list.add(Camera())
-                }
-                list.addAll(bean.images)
-                adapter.dataList = list
-                tv_image_selector_title.text = bean.name
-
-            }
-        })
-
-
     }
 
 
@@ -189,12 +209,15 @@ open class ImageSelectorActivity : AppCompatActivity() {
                         viewInjector
                                 .with<ImageView>(R.id.iv_image_selector_picture) {
                                     Glide.with(this)
+                                            .asBitmap()
                                             .load(localMedia.path)
                                             .into(it)
 
                                 }
                                 .with<ImageView>(R.id.iv_image_selector_state) {
                                     it.isSelected = localMedia.isChecked
+                                    val drawable = selected(selectedStateImage, unSelectedStateImage)
+                                    it.setImageDrawable(drawable)
                                     if (selectedMode == ImageExtra.SINGLE && localMedia.isChecked) {
                                         lastTimeSelectedInjector = viewInjector
                                         lastTimeSelectedLocalMedia = localMedia
@@ -296,13 +319,6 @@ open class ImageSelectorActivity : AppCompatActivity() {
                     .attachTo(picture_recycler)
                     .setDataList(list)
         }
-    }
-
-    //popWindow
-    private fun folderArrow(drawableRes: Int) {
-        val drawable = ContextCompat.getDrawable(this, drawableRes)
-        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null)
-        tv_image_selector_title.compoundDrawablePadding = 10
     }
 
 
@@ -485,6 +501,14 @@ open class ImageSelectorActivity : AppCompatActivity() {
             // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
             manualSaveFolder(media)
 
+            if (selectImages.size > 0) {
+                tv_img_num.visibility = View.VISIBLE
+                tv_img_num.text = selectImages.size.toString()
+                tv_img_num.startAnimation(selectedAnim)
+                tv_ok.text = "预览"
+                tv_ok.textColor = ContextCompat.getColor(this, previewTextColor)
+            }
+
         }
 
     }
@@ -496,7 +520,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
      */
     private fun onResult(images: ArrayList<LocalMedia>) {
         /*dismissCompressDialog()
-        if (config.camera && config.selectionMode == PictureConfig.MULTIPLE && selectionMedias != null) {
+        if (config.camera && config.selectionMode == ImageExtra.MULTIPLE && selectionMedias != null) {
             images.addAll(if (images.size > 0) images.size - 1 else 0, selectionMedias)
         }*/
         val intent = Intent()

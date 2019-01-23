@@ -2,37 +2,51 @@ package com.jhj.image
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import com.jhj.imageselector.ImageModel
+import android.support.v7.widget.GridLayoutManager
+import android.widget.ImageView
+import com.bumptech.glide.Glide
+import com.jhj.imageselector.GridSpacingItemDecoration
 import com.jhj.imageselector.ImageSelector
+import com.jhj.imageselector.bean.LocalMedia
+import com.jhj.slimadapter.SlimAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var dataList: List<LocalMedia>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val list = arrayListOf<ImageModel>(
-                ImageModel("http://47.94.173.253:8008/image/20181124/201811240513458764headimage.png"),
-                ImageModel("http://47.94.173.253:8008/image/20180420/15286837836/20180420035517headimage.png"),
-                ImageModel("http://47.94.173.253:8008/image/20180404/13926590001/20180404123347headimage.png"),
-                ImageModel("http://47.94.173.253:8008/image/com/59/1804113524logo.png"),
-                ImageModel("http://47.94.173.253:8008/image/20180404/13914071928/20180404094728headimage.png")
-        )
 
-        btn_preview.setOnClickListener {
-            ImageSelector.with(this)
-                    .imagePreview(list)
-        }
-
+        val adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
+                .register<LocalMedia>(R.layout.layout_grid_image) { injector, bean, position ->
+                    injector
+                            .with<ImageView>(R.id.iv_image_selector_picture) {
+                                Glide.with(this)
+                                        .asBitmap()
+                                        .load(bean.path)
+                                        .into(it)
+                            }
+                            .clicked {
+                                ImageSelector.with(this)
+                                        .imagePreview(dataList, position)
+                            }
+                            .gone(R.id.layout_image_selector_state)
+                }
+                .attachTo(recyclerView)
+                .addItemDecoration(GridSpacingItemDecoration(4,
+                        (2 * resources.displayMetrics.density).toInt(), false))
 
         btn_selector.setOnClickListener {
             ImageSelector.with(this)
                     .imageSelected {
-                        val a = it;
-                        val b = a;
+                        this.dataList = it
+                        adapter.setDataList(it)
                     }
         }
     }
+
 
 }
