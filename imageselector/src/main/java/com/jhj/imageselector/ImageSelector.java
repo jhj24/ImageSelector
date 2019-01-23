@@ -5,9 +5,9 @@ import android.content.Intent;
 
 import com.jhj.imageselector.activityresult.ActivityResult;
 import com.jhj.imageselector.bean.LocalMedia;
+import com.jhj.imageselector.config.ImageExtra;
 import com.jhj.imageselector.ui.ImagePreviewActivity;
 import com.jhj.imageselector.ui.ImageSelectorActivity;
-import com.jhj.imageselector.config.ImageExtra;
 import com.jhj.imageselector.utils.ExtensionKt;
 
 import java.util.List;
@@ -24,12 +24,13 @@ public class ImageSelector {
         return new ImageSelector(activity);
     }
 
-    public void imageSelected(final OnImageSelectedListener listener) {
+    public void imageSelected(List<LocalMedia> a, final OnImageSelectedListener listener) {
         ActivityResult.with(mActivity)
                 .targetActivity(ImageSelectorActivity.class)
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, ImageExtra.MULTI)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9)
                 .putInt(ImageExtra.EXTRA_SELECTED_MIN_NUM, 1)
+                .putSerializable("a", ExtensionKt.toArrayList(a))
                 .onResult(new ActivityResult.OnActivityResultListener() {
                     @Override
                     public void onResult(Intent data) {

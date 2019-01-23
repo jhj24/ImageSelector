@@ -20,7 +20,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.imageselector.R
 import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
@@ -30,6 +29,7 @@ import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.permissions.PermissionsCheck
 import com.jhj.imageselector.utils.*
 import com.jhj.imageselector.weight.FolderPopWindow
+import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import kotlinx.android.synthetic.main.activity_image_selector.*
@@ -79,7 +79,6 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private var outputCameraPath: String? = null
 
     //基础设置
-
     private var topBarBackImage = config.titleLeftBackImage
     private var titleTextColor = config.titleTextColor
     private var rightTextColor = config.rightTextColor
@@ -194,6 +193,10 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
 
     private fun initAdapter() {
+        val a = intent.getSerializableExtra("a")
+        if (a != null) {
+            selectImages = (a as List<LocalMedia>).toArrayList()
+        }
         picture_recycler.setHasFixedSize(true)
         picture_recycler.addItemDecoration(GridSpacingItemDecoration(4,
                 (2 * resources.displayMetrics.density).toInt(), false))
@@ -202,11 +205,11 @@ open class ImageSelectorActivity : AppCompatActivity() {
         MediaLoading.loadMedia(this, false) {
             foldersList = it
             folderWindow.bindFolder(foldersList)
-            val list = arrayListOf<Any>()
+            val imageDataList = arrayListOf<Any>()
             if (isAllowTakePhoto) {
-                list.add(Camera())
+                imageDataList.add(Camera())
             }
-            list.addAll(it[0].images)
+            imageDataList.addAll(it[0].images)
             previewList = it[0].images
             adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
                     .register<LocalMedia>(R.layout.layout_image_selector_grid) { viewInjector, localMedia, i ->
@@ -219,6 +222,11 @@ open class ImageSelectorActivity : AppCompatActivity() {
 
                                 }
                                 .with<ImageView>(R.id.iv_image_selector_state) {
+                                    val selectedList = selectImages.filter { it.path == localMedia.path }
+                                    if (selectedList.isNotEmpty()) {
+                                        localMedia.isChecked = true
+                                        it.isSelected = true
+                                    }
                                     it.isSelected = localMedia.isChecked
                                     val drawable = selected(selectedStateImage, unSelectedStateImage)
                                     it.setImageDrawable(drawable)
@@ -268,7 +276,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                             imageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_true), PorterDuff.Mode.SRC_ATOP)
                                         }
                                     } else {
-                                        selectImages.remove(localMedia)
+                                        val selectedList = selectImages.filter { it.path == localMedia.path }
+                                        selectImages.removeAll(selectedList)
                                         if (isSelectedImageAnim) {
                                             scaleAnim(imageView, zoomSize, originalSize)
                                             imageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
@@ -324,7 +333,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                         }
                     }
                     .attachTo(picture_recycler)
-                    .setDataList(list)
+                    .setDataList(imageDataList)
         }
     }
 
