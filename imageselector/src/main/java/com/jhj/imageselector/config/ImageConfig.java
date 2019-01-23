@@ -41,10 +41,12 @@ public class ImageConfig {
     public int selectedStateImage = R.drawable.image_checked; //图片选中时图标
     @DrawableRes
     public int unSelectedStateImage = R.drawable.image_unchecked; // 图片未选中时图标
-    public int bottomBackgroundColor; //底图预览背景色
+    @ColorRes
+    public int bottomBackgroundColor = R.color.white; //底图预览背景色
     @ColorRes
     public int previewTextColor = R.color.orange; //预览字体背景色
-    public int selectedNumBackground;//图片已选数量圆点背景色
+    @DrawableRes
+    public int previewNumBackground = R.drawable.orange_oval;//图片已选数量圆点背景色
 
     public boolean isImageAnim = true;
     public boolean isOnlyCamera = false;
@@ -55,6 +57,8 @@ public class ImageConfig {
     public boolean isCrop = false;
     public int selectMode = ImageExtra.MULTI;
     public int compressSize = 100;
+
+
 
 
 }

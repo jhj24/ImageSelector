@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.jhj.imageselector.GridSpacingItemDecoration
+import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.imageselector.ImageSelector
 import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.slimadapter.SlimAdapter
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
 
         val adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
-                .register<LocalMedia>(R.layout.layout_grid_image) { injector, bean, position ->
+                .register<LocalMedia>(R.layout.layout_image_selector_grid) { injector, bean, position ->
                     injector
                             .with<ImageView>(R.id.iv_image_selector_picture) {
                                 Glide.with(this)

@@ -41,6 +41,7 @@ public class ImageSelector {
                         }
                     }
                 });
+        mActivity.overridePendingTransition(R.anim.activity_fade_out,0);
     }
 
 
@@ -75,7 +76,7 @@ public class ImageSelector {
         intent.putExtra(ImageExtra.IMAGE_INDEX, currentIndex);
         intent.putExtra(ImageExtra.IMAGE_IS_DELETE, isDelete);
         mActivity.startActivity(intent);
-
+        mActivity.overridePendingTransition(R.anim.activity_fade_out,0);
     }
 
     public interface OnImageSelectedListener {

@@ -28,7 +28,7 @@ fun Activity.selected(press: Int, normal: Int): StateListDrawable {
     return selected(ContextCompat.getDrawable(this, press), ContextCompat.getDrawable(this, normal))
 }
 
-fun Activity.selected(press: Drawable?, normal: Drawable?): StateListDrawable {
+fun selected(press: Drawable?, normal: Drawable?): StateListDrawable {
     val drawable = StateListDrawable()
     drawable.addState(intArrayOf(android.R.attr.state_selected, android.R.attr.state_enabled), press)
     drawable.addState(intArrayOf(), normal)

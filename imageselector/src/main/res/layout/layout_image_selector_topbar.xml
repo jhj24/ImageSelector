@@ -47,7 +47,7 @@
             android:layout_centerVertical="true"
             android:gravity="center"
             android:padding="10dp"
-            android:text="取消"
+            android:text="完成"
             android:textSize="14sp" />
     </RelativeLayout>
 </LinearLayout>

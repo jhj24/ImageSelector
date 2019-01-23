@@ -23,7 +23,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.jhj.imageselector.bean.LocalMediaFolder
 import com.jhj.imageselector.R
 import com.jhj.slimadapter.SlimAdapter
-import kotlinx.android.synthetic.main.layout_picture_window_folder.view.*
+import kotlinx.android.synthetic.main.layout_image_selector_folder.view.*
 
 /**
  * 自定义PopWindow
@@ -45,11 +45,10 @@ class FolderPopWindow(private val mContext: Context) : PopupWindow() {
         val localDisplayMetrics = DisplayMetrics()
         (mContext as Activity).windowManager.defaultDisplay.getMetrics(localDisplayMetrics)
 
-        view = LayoutInflater.from(mContext).inflate(R.layout.layout_picture_window_folder, null)
+        view = LayoutInflater.from(mContext).inflate(R.layout.layout_image_selector_folder, null)
         contentView = view
         width = localDisplayMetrics.widthPixels
         height = localDisplayMetrics.heightPixels
-        animationStyle = R.style.WindowStyle
         isFocusable = true
         isOutsideTouchable = true
         update()
@@ -62,7 +61,7 @@ class FolderPopWindow(private val mContext: Context) : PopupWindow() {
         val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (folderSize * 60 * density).toInt())
         view.recycler_image_selector_folder.layoutParams = params
         adapter = SlimAdapter.creator(LinearLayoutManager(mContext))
-                .register<LocalMediaFolder>(R.layout.layout_picture_window_folder_item) { injector, bean, position ->
+                .register<LocalMediaFolder>(R.layout.layout_image_selector_folder_item) { injector, bean, position ->
                     injector
                             .with<ImageView>(R.id.iv_folder_image) {
                                 val options = RequestOptions()

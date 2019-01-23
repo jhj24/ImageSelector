@@ -20,7 +20,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.jhj.imageselector.GridSpacingItemDecoration
+import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.imageselector.R
 import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
@@ -34,9 +34,7 @@ import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import kotlinx.android.synthetic.main.activity_image_selector.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
-import org.jetbrains.anko.startActivity
-import org.jetbrains.anko.textColor
-import org.jetbrains.anko.toast
+import org.jetbrains.anko.*
 import java.io.File
 
 /**
@@ -81,7 +79,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private var outputCameraPath: String? = null
 
     //基础设置
-    private var previewTextColor = config.previewTextColor
+
     private var topBarBackImage = config.titleLeftBackImage
     private var titleTextColor = config.titleTextColor
     private var rightTextColor = config.rightTextColor
@@ -89,6 +87,9 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private var titleArrowUpImage = config.titleArrowUpImage
     private var selectedStateImage = config.selectedStateImage
     private var unSelectedStateImage = config.unSelectedStateImage
+    private var bottomBackgroundColor = config.bottomBackgroundColor
+    private var previewTextColor = config.previewTextColor
+    private var previewNumBackground = config.previewNumBackground
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,18 +100,19 @@ open class ImageSelectorActivity : AppCompatActivity() {
         if (isOnlyCamera) {
              startOpenCamera()
              return
-        } else {
-            PermissionsCheck.with(this)
-                    .requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    .onPermissionsResult { deniedPermissions, allPermissions ->
-                        if (deniedPermissions.isEmpty()) {
-                            initAdapter()
-                        } else {
-                            toast("内存权限请求失败")
-                            closeActivity()
-                        }
-                    }
         }
+
+        PermissionsCheck.with(this)
+                .requestPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .onPermissionsResult { deniedPermissions, allPermissions ->
+                    if (deniedPermissions.isEmpty()) {
+                        initAdapter()
+                    } else {
+                        toast("内存权限请求失败")
+                        closeActivity()
+                    }
+                }
+
         initTopBar()
     }
 
@@ -185,6 +187,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
             }
         }
 
+        id_ll_ok.backgroundColor = getTColor(bottomBackgroundColor)
+
 
     }
 
@@ -205,7 +209,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
             list.addAll(it[0].images)
             previewList = it[0].images
             adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
-                    .register<LocalMedia>(R.layout.layout_grid_image) { viewInjector, localMedia, i ->
+                    .register<LocalMedia>(R.layout.layout_image_selector_grid) { viewInjector, localMedia, i ->
                         viewInjector
                                 .with<ImageView>(R.id.iv_image_selector_picture) {
                                     Glide.with(this)
@@ -275,6 +279,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                     id_ll_ok.setOnClickListener {
                                         if (selectImages.size > 0) {
                                             startActivity<ImagePreviewActivity>(ImageExtra.IMAGE_LIST to selectImages)
+                                            overridePendingTransition(R.anim.activity_fade_out, 0)
                                         } else {
                                             toast("请选择要预览的图片")
                                         }
@@ -284,8 +289,9 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                         tv_img_num.visibility = View.VISIBLE
                                         tv_img_num.text = selectImages.size.toString()
                                         tv_img_num.startAnimation(selectedAnim)
+                                        tv_img_num.backgroundDrawable = getImgDrawable(previewNumBackground)
                                         tv_ok.text = "预览"
-                                        tv_ok.textColor = ContextCompat.getColor(this, previewTextColor)
+                                        tv_ok.textColor = getTColor(previewTextColor)
                                     } else {
                                         tv_img_num.text = "0"
                                         tv_img_num.visibility = View.GONE
@@ -305,9 +311,10 @@ open class ImageSelectorActivity : AppCompatActivity() {
                                             .onResult {
 
                                             }
+                                    overridePendingTransition(R.anim.activity_fade_out, 0)
                                 }
                     }
-                    .register<Camera>(R.layout.layout_item_camera) { viewInjector, localMedia, i ->
+                    .register<Camera>(R.layout.layout_image_selector_grid_camera) { viewInjector, localMedia, i ->
                         viewInjector.clicked {
                             if (selectImages.size >= selectedMaxNum) {
                                 toast("你最多可以选择${selectedMaxNum}张图片")
@@ -469,46 +476,55 @@ open class ImageSelectorActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        closeActivity()
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && ImageExtra.REQUEST_CAMERA == requestCode) {
-            try {
-                val file = File(cameraPath)
-                //启动MediaScanner服务，扫描媒体文件
-                sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
-            } catch (e: Exception) {
-                e.printStackTrace()
+        if (ImageExtra.REQUEST_CAMERA == requestCode) {
+            if (resultCode == Activity.RESULT_OK) {
+                try {
+                    val file = File(cameraPath)
+                    //启动MediaScanner服务，扫描媒体文件
+                    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                //单选
+                if (selectedMode == ImageExtra.SINGLE) {
+                    singleMediaImage()
+                }
+
+                // 生成新拍照片或视频对象
+                val media = LocalMedia()
+                val pictureType = MediaMimeType.createImageType(cameraPath)
+                media.path = cameraPath
+                media.pictureType = pictureType
+                media.duration = 0
+                media.isChecked = true
+                media.mimeType = ImageExtra.TYPE_IMAGE
+                selectImages.add(media)
+
+                adapter.addData(1, media)
+
+                // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
+                manualSaveFolder(media)
+
+                if (selectImages.size > 0) {
+                    tv_img_num.visibility = View.VISIBLE
+                    tv_img_num.text = selectImages.size.toString()
+                    tv_img_num.startAnimation(selectedAnim)
+                    tv_ok.text = "预览"
+                    tv_ok.textColor = getTColor(previewTextColor)
+                }
+
+            } else if (isOnlyCamera) {
+                finish()
+                overridePendingTransition(0, R.anim.activity_fade_out2)
             }
-
-            //单选
-            if (selectedMode == ImageExtra.SINGLE) {
-                singleMediaImage()
-            }
-
-            // 生成新拍照片或视频对象
-            val media = LocalMedia()
-            val pictureType = MediaMimeType.createImageType(cameraPath)
-            media.path = cameraPath
-            media.pictureType = pictureType
-            media.duration = 0
-            media.isChecked = true
-            media.mimeType = ImageExtra.TYPE_IMAGE
-            selectImages.add(media)
-
-            adapter.addData(1, media)
-
-            // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
-            manualSaveFolder(media)
-
-            if (selectImages.size > 0) {
-                tv_img_num.visibility = View.VISIBLE
-                tv_img_num.text = selectImages.size.toString()
-                tv_img_num.startAnimation(selectedAnim)
-                tv_ok.text = "预览"
-                tv_ok.textColor = ContextCompat.getColor(this, previewTextColor)
-            }
-
         }
 
     }
@@ -534,11 +550,7 @@ open class ImageSelectorActivity : AppCompatActivity() {
      */
     private fun closeActivity() {
         finish()
-        if (isOnlyCamera) {
-            overridePendingTransition(0, R.anim.fade_out)
-        } else {
-            overridePendingTransition(0, R.anim.a3)
-        }
+        overridePendingTransition(0, R.anim.activity_fade_in)
     }
 
     private class Camera

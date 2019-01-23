@@ -1,4 +1,4 @@
-package com.jhj.imageselector;
+package com.jhj.imageselector.weight;
 
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;

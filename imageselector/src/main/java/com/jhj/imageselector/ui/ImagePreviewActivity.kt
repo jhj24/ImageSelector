@@ -10,10 +10,10 @@ import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.jhj.imageselector.config.ImageExtra
-import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.R
-import kotlinx.android.synthetic.main.activity_image_view_pager.*
+import com.jhj.imageselector.bean.LocalMedia
+import com.jhj.imageselector.config.ImageExtra
+import kotlinx.android.synthetic.main.activity_image_preview.*
 import uk.co.senab.photoview.PhotoView
 
 /**
@@ -27,7 +27,7 @@ class ImagePreviewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_image_view_pager)
+        setContentView(R.layout.activity_image_preview)
 
         imageList = (intent.getSerializableExtra(ImageExtra.IMAGE_LIST) as List<LocalMedia>?).orEmpty().toMutableList()
         var imageIndex = intent.getIntExtra(ImageExtra.IMAGE_INDEX, 0)
@@ -80,6 +80,11 @@ class ImagePreviewActivity : AppCompatActivity() {
 
     }
 
+    override fun onBackPressed() {
+        finish()
+        overridePendingTransition(0, R.anim.activity_fade_in)
+    }
+
     private val pageAdapter = object : PagerAdapter() {
 
         private var mPrimaryItem: View? = null
@@ -108,7 +113,7 @@ class ImagePreviewActivity : AppCompatActivity() {
             container.addView(photoView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             photoView.setOnViewTapListener { view, x, y ->
                 finish()
-                overridePendingTransition(0, R.anim.a3)
+                overridePendingTransition(0, R.anim.activity_fade_in)
             }
             return photoView
         }
