@@ -22,11 +22,16 @@ class MainActivity : AppCompatActivity() {
 
         val adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
                 .register<LocalMedia>(R.layout.layout_image_selector_grid) { injector, bean, position ->
+                    val path = when {
+                        bean.isCut -> bean.cutPath
+                        bean.isCompressed -> bean.compressPath
+                        else -> bean.path
+                    }
                     injector
                             .with<ImageView>(R.id.iv_image_selector_picture) {
                                 Glide.with(this)
                                         .asBitmap()
-                                        .load(bean.path)
+                                        .load(path)
                                         .into(it)
                             }
                             .clicked {
