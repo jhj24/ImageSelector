@@ -10,29 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp">
+    <include layout="@layout/layout_image_selector_topbar" />
 
-        <ImageView
-            android:layout_width="50dp"
-            android:layout_height="match_parent" />
-
-        <TextView
-            android:id="@+id/tv_image_index"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textColor="#ffffff" />
-
-        <TextView
-            android:id="@+id/tv_image_delete"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center|right"
-            android:paddingRight="10dp"
-            android:text="删除"
-            android:textColor="#ffffff" />
-
-    </RelativeLayout>
 </RelativeLayout>

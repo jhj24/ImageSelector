@@ -4,6 +4,7 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 
 import com.jhj.imageselector.R;
+import com.yalantis.ucrop.UCrop;
 
 public class ImageConfig {
 
@@ -24,9 +25,9 @@ public class ImageConfig {
     }
 
     @ColorRes
-    public int colorPrimaryDark; //状态栏背景色
+    public int statusBarDark = R.color.colorPrimaryDark1; //状态栏背景色
     @ColorRes
-    public int colorPrimary; //标题栏背景色
+    public int topbarPrimary = R.color.colorPrimary1; //标题栏背景色
     @DrawableRes
     public int titleLeftBackImage = R.drawable.arrow_back; //返回键图标
     @DrawableRes
@@ -48,14 +49,24 @@ public class ImageConfig {
     @DrawableRes
     public int previewNumBackground = R.drawable.orange_oval;//图片已选数量圆点背景色
 
+
+    public UCrop.Options uCropOptions;
+    public int uCropPressQuality = 90;
+    public float uCropScaleX = 1;
+    public float uCropScaleY = 1;
+    public int uCropWidth = 0;
+    public int uCropHeight = 0;
+    public boolean isHideUCropBottomControl = true;  // 是否隐藏底部容器
+    public boolean isFreeStyleCropEnabled = true; //是否能调整裁剪框
+
     public boolean isImageAnim = true;
     public boolean isOnlyCamera = false;
     public boolean isAllowTakePhoto = true;
     public int maxSelectNum = 9;
     public int minSelectNum = 1;
     public boolean isCompress = false;
-    public boolean isCrop = false;
-    public int selectMode = ImageExtra.MULTI;
+    public boolean isCrop = true;
+    public int selectMode = ImageExtra.SINGLE;
     public int compressSize = 100;
 
 

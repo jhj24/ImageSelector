@@ -1,19 +1,29 @@
 package com.jhj.imageselector.ui
 
+import android.annotation.TargetApi
+import android.os.Build
 import android.os.Bundle
+import android.support.annotation.ColorInt
 import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.jhj.imageselector.R
 import com.jhj.imageselector.bean.LocalMedia
+import com.jhj.imageselector.config.ImageConfig
 import com.jhj.imageselector.config.ImageExtra
+import com.jhj.imageselector.utils.getImgDrawable
+import com.jhj.imageselector.utils.getTColor
 import kotlinx.android.synthetic.main.activity_image_preview.*
+import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
+import org.jetbrains.anko.backgroundColor
+import org.jetbrains.anko.textColor
 import uk.co.senab.photoview.PhotoView
 
 /**
@@ -24,6 +34,13 @@ import uk.co.senab.photoview.PhotoView
 class ImagePreviewActivity : AppCompatActivity() {
 
     private lateinit var imageList: MutableList<LocalMedia>
+
+    private var config = ImageConfig.getInstance()
+    private var statusColor = config.statusBarDark
+    private var toolbarColor = config.topbarPrimary
+    private var topBarBackImage = config.titleLeftBackImage
+    private var titleTextColor = config.titleTextColor
+    private var rightTextColor = config.rightTextColor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,14 +64,23 @@ class ImagePreviewActivity : AppCompatActivity() {
 
             override fun onPageSelected(position: Int) {
                 imageIndex = position
-                tv_image_index.text = "${position + 1}/${imageList.size}"
+                tv_image_selector_title.text = "${position + 1}/${imageList.size}"
             }
 
         })
 
-        tv_image_index.text = "${imageIndex + 1}/${imageList.size}"
-        tv_image_delete.visibility = if (imageIsDelete) View.VISIBLE else View.GONE
-        tv_image_delete.setOnClickListener {
+        iv_image_selector_back.setImageDrawable(getImgDrawable(topBarBackImage))
+        iv_image_selector_back.setOnClickListener {
+            finish()
+            overridePendingTransition(0, R.anim.activity_fade_in)
+        }
+
+        tv_image_selector_title.textColor = getTColor(titleTextColor)
+        tv_image_selector_right.textColor = getTColor(rightTextColor)
+
+        tv_image_selector_title.text = "${imageIndex + 1}/${imageList.size}"
+        tv_image_selector_right.visibility = if (imageIsDelete) View.VISIBLE else View.GONE
+        tv_image_selector_right.setOnClickListener {
 
             val isLeftSweep = imageIndex < imageList.size - 1
             imageList.removeAt(imageIndex)
@@ -66,7 +92,7 @@ class ImagePreviewActivity : AppCompatActivity() {
             val currentIndex = if (imageIndex < imageList.size) imageIndex else imageList.size - 1
             imageViewPager.adapter?.notifyDataSetChanged()
             imageViewPager.currentItem = currentIndex
-            tv_image_index.text = "${currentIndex + 1}/${imageList.size}"
+            tv_image_selector_title.text = "${currentIndex + 1}/${imageList.size}"
 
             val animInRes = if (isLeftSweep) {
                 R.anim.anim_image_in_left
@@ -78,6 +104,20 @@ class ImagePreviewActivity : AppCompatActivity() {
             imageViewPager.startAnimation(animIn)
         }
 
+        setStatusBarColor(getTColor(statusColor))
+
+        layout_picture_title.backgroundColor = (255 * 0.1).toInt() shl 24  or toolbarColor
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun setStatusBarColor(@ColorInt color: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val window = window
+            if (window != null) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                window.statusBarColor = color
+            }
+        }
     }
 
     override fun onBackPressed() {

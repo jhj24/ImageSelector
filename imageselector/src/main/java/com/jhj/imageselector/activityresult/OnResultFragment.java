@@ -7,7 +7,7 @@ import android.os.Bundle;
 
 public final class OnResultFragment extends Fragment {
 
-    static int ACTIVITY_CODE = 0x11000000;
+    static int ACTIVITY_CODE = 1;
     private ActivityResult.OnActivityResultListener listener;
 
     @Override

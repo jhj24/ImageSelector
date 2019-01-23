@@ -3,6 +3,7 @@ package com.jhj.imageselector.ui
 import android.Manifest
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
 import android.graphics.PorterDuff
@@ -10,12 +11,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.support.annotation.ColorInt
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.text.TextUtils
 import android.view.View
+import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
@@ -32,6 +35,7 @@ import com.jhj.imageselector.weight.FolderPopWindow
 import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
+import com.yalantis.ucrop.UCrop
 import kotlinx.android.synthetic.main.activity_image_selector.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
 import org.jetbrains.anko.*
@@ -79,6 +83,8 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private var outputCameraPath: String? = null
 
     //基础设置
+    private var statusColor = config.statusBarDark
+    private var toolbarColor = config.topbarPrimary
     private var topBarBackImage = config.titleLeftBackImage
     private var titleTextColor = config.titleTextColor
     private var rightTextColor = config.rightTextColor
@@ -89,6 +95,17 @@ open class ImageSelectorActivity : AppCompatActivity() {
     private var bottomBackgroundColor = config.bottomBackgroundColor
     private var previewTextColor = config.previewTextColor
     private var previewNumBackground = config.previewNumBackground
+
+    //剪切
+    private var uCropOptions = config.uCropOptions
+    private var uCropCompressQuality = config.uCropPressQuality
+    private var uCropScaleX = config.uCropScaleX
+    private var uCropScaleY = config.uCropScaleY
+    private var uCropWidth = config.uCropWidth
+    private var uCropHeight = config.uCropHeight
+    private var isHideUCropBottomControl = config.isHideUCropBottomControl
+    private var isFreeStyleCropEnabled = config.isFreeStyleCropEnabled
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -154,29 +171,20 @@ open class ImageSelectorActivity : AppCompatActivity() {
                 ""
             // 如果设置了图片最小选择数量，则判断是否满足条件
             val isImage = pictureType.startsWith(ImageExtra.IMAGE) || pictureType == ""
-            if (selectedMinNum > 0 && selectedMode == ImageExtra.MULTI) {
-                if (selectImages.size < selectedMinNum) {
-                    val str = if (isImage)
-                        "图片最低选择不能少于${selectedMinNum}张"
-                    else
-                        "视频最低选择不能少于${selectedMinNum}个"
-                    toast(str)
-                    return@setOnClickListener
-                }
+            if (selectImages.size == 0) {
+                toast("请选择图片")
+                return@setOnClickListener
+            } else if (selectedMode == ImageExtra.MULTI && selectImages.size < selectedMinNum) {
+                val str = if (isImage)
+                    "图片最低选择不能少于${selectedMinNum}张"
+                else
+                    "视频最低选择不能少于${selectedMinNum}个"
+                toast(str)
+                return@setOnClickListener
             }
-            /* if (config.isCrop && isImage) {
-                 if (config.selectMode == ImageConfig.SelectedMode.MULTI) {
-                     image?.path?.let { it1 -> ImageCrop.startCrop(it1) }
-                 } else {
-                     // 是图片和选择压缩并且是多张，调用批量压缩
-                     val medias = ArrayList<String>()
-                     for (media in selectImages) {
-                         medias.add(media.getPath())
-                     }
-                     ImageCrop.startCrop(medias)
-                 }
-             } else*/
-            if (isImage && isCompress) {
+            if (isCrop && isImage && selectedMode == ImageExtra.SINGLE) {
+                startCrop(selectImages[0].path)
+            } else if (isImage && isCompress) {
                 // 图片才压缩，视频不管
                 ImageCompress.luban(this, ignoreCompressSize, selectImages) {
                     onResult(it.toArrayList())
@@ -187,8 +195,19 @@ open class ImageSelectorActivity : AppCompatActivity() {
         }
 
         id_ll_ok.backgroundColor = getTColor(bottomBackgroundColor)
+        setStatusBarColor(getTColor(statusColor))
+        layout_picture_title.backgroundColor =getTColor(toolbarColor)
+    }
 
-
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun setStatusBarColor(@ColorInt color: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val window = window
+            if (window != null) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                window.statusBarColor = color
+            }
+        }
     }
 
 
@@ -537,6 +556,37 @@ open class ImageSelectorActivity : AppCompatActivity() {
         }
 
     }
+
+    private fun startCrop(url: String) {
+        if (uCropOptions == null) {
+            uCropOptions = UCrop.Options()
+            uCropOptions.setStatusBarColor(getTColor(statusColor))
+            uCropOptions.setToolbarColor(getTColor(toolbarColor))
+            uCropOptions.setToolbarWidgetColor(getTColor(titleTextColor))
+            uCropOptions.setHideBottomControls(isHideUCropBottomControl) // 是否隐藏底部容器
+            uCropOptions.setFreeStyleCropEnabled(isFreeStyleCropEnabled) //是否能调整裁剪框
+            uCropOptions.setCompressionQuality(uCropCompressQuality) ////设置裁剪的图片质量，取值0-100
+        }
+        val imageType = MediaMimeType.getLastImgType(url)
+        val target = File(PictureFileUtils.getDiskCacheDir(this), System.currentTimeMillis().toString() + imageType)
+        val intent = UCrop.of(Uri.fromFile(File(url)), Uri.fromFile(target))
+                .withAspectRatio(uCropScaleX, uCropScaleY)
+                .withMaxResultSize(uCropWidth, uCropHeight)
+                .withOptions(uCropOptions)
+                .getIntent(this)
+        ActivityResult.with(this)
+                .targentIntent(intent)
+                .onResult {
+                    if (it != null) {
+                        val uri = UCrop.getOutput(it)
+                        val cutPath = uri?.path
+                        selectImages[0].cutPath = cutPath
+                        selectImages[0].isCut = true
+                        onResult(selectImages)
+                    }
+                }
+    }
+
 
     /**
      * return image result

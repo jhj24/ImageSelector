@@ -25,7 +25,25 @@ public class ImageSelector {
     }
 
     public void imageSelected(List<LocalMedia> a, final OnImageSelectedListener listener) {
+        Intent intent = new Intent(mActivity,ImageSelectorActivity.class);
+        intent.putExtra(ImageExtra.EXTRA_SELECTED_MODE, ImageExtra.MULTI);
+        intent.putExtra(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9);
+        intent.putExtra(ImageExtra.EXTRA_SELECTED_MIN_NUM, 1);
         ActivityResult.with(mActivity)
+                .targentIntent(intent)
+                .onResult(new ActivityResult.OnActivityResultListener() {
+                    @Override
+                    public void onResult(Intent data) {
+                        if (data!= null){
+                            Object ob = data.getSerializableExtra(ImageExtra.EXTRA_SELECTED_RESULT);
+                            if (ob != null) {
+                                listener.onSelected((List<LocalMedia>) ob);
+                            }
+                        }
+                    }
+                });
+
+      /*  ActivityResult.with(mActivity)
                 .targetActivity(ImageSelectorActivity.class)
                 .putInt(ImageExtra.EXTRA_SELECTED_MODE, ImageExtra.MULTI)
                 .putInt(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9)
@@ -41,7 +59,7 @@ public class ImageSelector {
                             }
                         }
                     }
-                });
+                });*/
         mActivity.overridePendingTransition(R.anim.activity_fade_out,0);
     }
 
