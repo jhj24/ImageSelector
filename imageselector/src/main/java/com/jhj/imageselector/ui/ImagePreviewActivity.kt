@@ -1,29 +1,27 @@
 package com.jhj.imageselector.ui
 
-import android.annotation.TargetApi
-import android.os.Build
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.ColorInt
 import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
-import android.support.v7.app.AppCompatActivity
+import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.jhj.imageselector.R
 import com.jhj.imageselector.bean.LocalMedia
-import com.jhj.imageselector.config.ImageConfig
 import com.jhj.imageselector.config.ImageExtra
-import com.jhj.imageselector.utils.getImgDrawable
-import com.jhj.imageselector.utils.getTColor
+import com.jhj.imageselector.utils.*
 import kotlinx.android.synthetic.main.activity_image_preview.*
+import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
 import org.jetbrains.anko.backgroundColor
 import org.jetbrains.anko.textColor
+import org.jetbrains.anko.toast
 import uk.co.senab.photoview.PhotoView
 
 /**
@@ -31,68 +29,44 @@ import uk.co.senab.photoview.PhotoView
  *
  * Created by jhj on 19-1-15.
  */
-class ImagePreviewActivity : AppCompatActivity() {
+class ImagePreviewActivity : BaseImageActivity() {
 
     private lateinit var imageList: MutableList<LocalMedia>
-
-    private var config = ImageConfig.getInstance()
-    private var statusColor = config.statusBarDark
-    private var toolbarColor = config.topbarPrimary
-    private var topBarBackImage = config.titleLeftBackImage
-    private var titleTextColor = config.titleTextColor
-    private var rightTextColor = config.rightTextColor
+    private var selectImages: ArrayList<LocalMedia> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_preview)
 
-        imageList = (intent.getSerializableExtra(ImageExtra.IMAGE_LIST) as List<LocalMedia>?).orEmpty().toMutableList()
+        selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_SELECTED_LIST).orEmpty().toArrayList()
+        imageList = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_LIST).orEmpty().toArrayList()
         var imageIndex = intent.getIntExtra(ImageExtra.IMAGE_INDEX, 0)
-        val imageIsDelete = intent.getBooleanExtra(ImageExtra.IMAGE_IS_DELETE, false)
+        val isImageDelete = intent.getBooleanExtra(ImageExtra.IMAGE_IS_DELETE, false)
+        val isImageSelector = intent.getBooleanExtra(ImageExtra.IMAGE_IS_SELECTED, false)
 
-        imageViewPager.offscreenPageLimit = imageList.size
-        imageViewPager.adapter = pageAdapter
-        imageViewPager.currentItem = imageIndex
-        imageViewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrollStateChanged(state: Int) {
+        layout_image_selector_title.backgroundColor = (255 * 0.1).toInt() shl 24 or toolbarColor
+        layout_bottom_preview.backgroundColor = (255 * 0.1).toInt() shl 24 or toolbarColor
 
-            }
-
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-
-            }
-
-            override fun onPageSelected(position: Int) {
-                imageIndex = position
-                tv_image_selector_title.text = "${position + 1}/${imageList.size}"
-            }
-
-        })
-
-        iv_image_selector_back.setImageDrawable(getImgDrawable(topBarBackImage))
-        iv_image_selector_back.setOnClickListener {
-            finish()
-            overridePendingTransition(0, R.anim.activity_fade_in)
+        if (isImageSelector) {
+            updateSelectedNum(selectImages.size, "完成")
         }
 
-        tv_image_selector_title.textColor = getTColor(titleTextColor)
-        tv_image_selector_right.textColor = getTColor(rightTextColor)
-
         tv_image_selector_title.text = "${imageIndex + 1}/${imageList.size}"
-        tv_image_selector_right.visibility = if (imageIsDelete) View.VISIBLE else View.GONE
+
+        tv_image_selector_right.visibility = if (isImageDelete) View.VISIBLE else View.GONE
+        tv_image_selector_right.text = "删除"
         tv_image_selector_right.setOnClickListener {
 
             val isLeftSweep = imageIndex < imageList.size - 1
             imageList.removeAt(imageIndex)
             if (imageList.size <= 0) {
-                finish()
+                closeActivity()
                 return@setOnClickListener
             }
 
             val currentIndex = if (imageIndex < imageList.size) imageIndex else imageList.size - 1
             imageViewPager.adapter?.notifyDataSetChanged()
             imageViewPager.currentItem = currentIndex
-            tv_image_selector_title.text = "${currentIndex + 1}/${imageList.size}"
 
             val animInRes = if (isLeftSweep) {
                 R.anim.anim_image_in_left
@@ -104,26 +78,94 @@ class ImagePreviewActivity : AppCompatActivity() {
             imageViewPager.startAnimation(animIn)
         }
 
-        setStatusBarColor(getTColor(statusColor))
+        imageViewPager.adapter = pageAdapter
+        imageViewPager.currentItem = imageIndex
+        imageViewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+            override fun onPageScrollStateChanged(state: Int) {
+                if (ViewPager.SCROLL_STATE_IDLE == state) {
+                    onPageSelected(imageViewPager.currentItem)
+                }
+            }
 
-        layout_picture_title.backgroundColor = (255 * 0.1).toInt() shl 24  or toolbarColor
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                val currentItem = imageViewPager.currentItem
+                if (position == currentItem) {//向右
+                    if (currentItem == imageList.size - 1)
+                        return
+                } else {//向左
+                    if (currentItem == 0)
+                        return
+                }
+                setImageSelector(isImageSelector, currentItem)
+            }
+
+            override fun onPageSelected(position: Int) {
+                imageIndex = position
+                tv_image_selector_title.text = "${position + 1}/${imageList.size}"
+                setImageSelector(isImageSelector, position)
+            }
+        })
+
+        layout_image_preview.setOnClickListener {
+            val intent = Intent()
+            intent.putParcelableArrayListExtra(ImageExtra.IMAGE_SELECTED_LIST, selectImages.toArrayList())
+            setResult(Activity.RESULT_OK, intent)
+            closeActivity()
+        }
+
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun setStatusBarColor(@ColorInt color: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val window = window
-            if (window != null) {
-                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-                window.statusBarColor = color
+    private fun setImageSelector(isImageSelector: Boolean, position: Int) {
+        if (isImageSelector) {
+            layout_image_selector_state.visibility = View.VISIBLE
+            iv_image_selector_state.isSelected = imageList[position].isChecked
+            val drawable = selected(selectedStateImage, unSelectedStateImage)
+            iv_image_selector_state.setImageDrawable(drawable)
+            layout_image_selector_state.setOnClickListener {
+                val localMedia = imageList[position]
+                val pictureType = if (selectImages.size > 0) selectImages[0].pictureType else ""
+                val isChecked = iv_image_selector_state.isSelected
+                if (!TextUtils.isEmpty(pictureType)) {
+                    val toEqual = MediaMimeType.mimeToEqual(pictureType, localMedia.pictureType)
+                    if (!toEqual) {
+                        toast("不能同时选择图片或视频")
+                        return@setOnClickListener
+                    }
+                }
+                //达到最大选择数，点击未选中的ImageView
+                if (selectImages.size >= selectedMaxNum && !isChecked) {
+                    val eqImg = pictureType.startsWith(ImageExtra.IMAGE)
+                    val str = if (eqImg)
+                        "你最多可以选择${selectedMaxNum}张图片"
+                    else
+                        "你最多可以选择${selectedMaxNum}个视频"
+                    toast(str)
+                    return@setOnClickListener
+                }
+
+                iv_image_selector_state.isSelected = !isChecked
+                localMedia.isChecked = !isChecked
+
+                if (iv_image_selector_state.isSelected) {
+                    // 如果是单选，则清空已选中的并刷新列表(作单一选择)
+                    if (selectedMode == ImageExtra.SINGLE) {
+                        if (selectImages.size > 0) {
+                            imageList.filter { image -> image.path == selectImages[0].path }[0].isChecked = false
+                            selectImages.clear()
+                        }
+                    }
+                    iv_image_selector_state.startAnimation(selectedAnim)
+                    selectImages.add(localMedia)
+                    localMedia.num = selectImages.size
+                } else {
+                    val selectedList = selectImages.filter { image -> image.path == localMedia.path }
+                    selectImages.removeAll(selectedList)
+                }
+                updateSelectedNum(selectImages.size, "完成")
             }
         }
     }
 
-    override fun onBackPressed() {
-        finish()
-        overridePendingTransition(0, R.anim.activity_fade_in)
-    }
 
     private val pageAdapter = object : PagerAdapter() {
 
@@ -152,8 +194,7 @@ class ImagePreviewActivity : AppCompatActivity() {
                     .into(photoView)
             container.addView(photoView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             photoView.setOnViewTapListener { view, x, y ->
-                finish()
-                overridePendingTransition(0, R.anim.activity_fade_in)
+                closeActivity()
             }
             return photoView
         }

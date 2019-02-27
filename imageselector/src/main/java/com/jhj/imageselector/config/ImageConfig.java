@@ -66,10 +66,8 @@ public class ImageConfig {
     public int minSelectNum = 1;
     public boolean isCompress = false;
     public boolean isCrop = true;
-    public int selectMode = ImageExtra.SINGLE;
+    public int selectMode = ImageExtra.MULTI;
     public int compressSize = 100;
-
-
 
 
 }

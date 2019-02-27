@@ -8,6 +8,7 @@ object ImageExtra {
     const val IMAGE_INDEX = "image_index"
     const val IMAGE_LIST = "image_list"
     const val IMAGE_IS_SELECTED = "image_is_selected"
+    const val IMAGE_SELECTED_LIST = "image_selected_list"
     const val IMAGE_IS_DELETE = "image_is_delete"
 
 

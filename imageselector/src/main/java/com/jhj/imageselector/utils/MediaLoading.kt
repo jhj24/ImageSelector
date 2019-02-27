@@ -144,6 +144,4 @@ object MediaLoading {
         imageFolders.add(newFolder)
         return newFolder
     }
-
-
 }

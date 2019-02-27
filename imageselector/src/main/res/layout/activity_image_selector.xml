@@ -1,56 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff">
+    android:background="#ffffff"
+    android:orientation="vertical">
 
-  <include layout="@layout/layout_image_selector_topbar" />
+    <include layout="@layout/layout_image_selector_topbar" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/picture_recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp" />
+        android:layout_marginRight="2dp"
+        android:layout_weight="1" />
 
-  <RelativeLayout
-      android:id="@+id/select_bar_layout"
-      android:layout_width="match_parent"
-      android:layout_height="45dp"
-      android:gravity="center_vertical">
-
-    <LinearLayout
-        android:id="@+id/id_ll_ok"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:gravity="center_vertical"
-        android:padding="10dp"
-        android:orientation="horizontal">
-
-      <TextView
-          android:visibility="gone"
-          android:id="@+id/tv_img_num"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginRight="5dp"
-          android:gravity="center"
-          android:text="0"
-          android:textColor="#ffffff"
-          android:textSize="12sp" />
-
-      <TextView
-          android:id="@+id/tv_ok"
-          android:layout_width="wrap_content"
-          android:layout_height="match_parent"
-          android:gravity="center|left"
-          android:text="请选择"
-          android:textSize="14sp" />
-
-    </LinearLayout>
-  </RelativeLayout>
+    <include
+        layout="@layout/layout_image_selector_bottom"
+        android:visibility="visible" />
 
 </LinearLayout>

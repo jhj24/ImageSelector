@@ -2,6 +2,7 @@ package com.jhj.imageselector;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Parcelable;
 
 import com.jhj.imageselector.activityresult.ActivityResult;
 import com.jhj.imageselector.bean.LocalMedia;
@@ -25,7 +26,7 @@ public class ImageSelector {
     }
 
     public void imageSelected(List<LocalMedia> a, final OnImageSelectedListener listener) {
-        Intent intent = new Intent(mActivity,ImageSelectorActivity.class);
+        Intent intent = new Intent(mActivity, ImageSelectorActivity.class);
         intent.putExtra(ImageExtra.EXTRA_SELECTED_MODE, ImageExtra.MULTI);
         intent.putExtra(ImageExtra.EXTRA_SELECTED_MAX_NUM, 9);
         intent.putExtra(ImageExtra.EXTRA_SELECTED_MIN_NUM, 1);
@@ -34,7 +35,7 @@ public class ImageSelector {
                 .onResult(new ActivityResult.OnActivityResultListener() {
                     @Override
                     public void onResult(Intent data) {
-                        if (data!= null){
+                        if (data != null) {
                             Object ob = data.getSerializableExtra(ImageExtra.EXTRA_SELECTED_RESULT);
                             if (ob != null) {
                                 listener.onSelected((List<LocalMedia>) ob);
@@ -60,7 +61,7 @@ public class ImageSelector {
                         }
                     }
                 });*/
-        mActivity.overridePendingTransition(R.anim.activity_fade_out,0);
+        mActivity.overridePendingTransition(R.anim.activity_fade_out, 0);
     }
 
 
@@ -89,13 +90,12 @@ public class ImageSelector {
     }
 
     public void imagePreview(List<LocalMedia> imageList, int currentIndex, boolean isDelete) {
-
         Intent intent = new Intent(mActivity, ImagePreviewActivity.class);
-        intent.putExtra(ImageExtra.IMAGE_LIST, ExtensionKt.toArrayList(imageList));
+        intent.putParcelableArrayListExtra(ImageExtra.IMAGE_LIST, ExtensionKt.<Parcelable>toArrayList(imageList));
         intent.putExtra(ImageExtra.IMAGE_INDEX, currentIndex);
         intent.putExtra(ImageExtra.IMAGE_IS_DELETE, isDelete);
         mActivity.startActivity(intent);
-        mActivity.overridePendingTransition(R.anim.activity_fade_out,0);
+        mActivity.overridePendingTransition(R.anim.activity_fade_out, 0);
     }
 
     public interface OnImageSelectedListener {

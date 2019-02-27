@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -200,7 +202,7 @@ public final class ActivityResult {
 
 
     public void onResult(OnActivityResultListener listener) {
-        if (mActivity == null) {
+        if (mActivity == null || listener == null) {
             return;
         }
         String TAG = getClass().getName();
@@ -219,7 +221,7 @@ public final class ActivityResult {
             if (mTargetActivity != null) {
                 fragment.startActivityForResult(mTargetActivity, mBundle, listener);
             } else if (mIntent != null) {
-                fragment.startActivityForResult(mIntent,listener);
+                fragment.startActivityForResult(mIntent, listener);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -228,6 +230,6 @@ public final class ActivityResult {
     }
 
     public interface OnActivityResultListener {
-        void onResult(Intent data);
+        void onResult(@Nullable Intent data);
     }
 }

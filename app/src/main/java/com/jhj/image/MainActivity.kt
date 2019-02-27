@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
                             }
                             .clicked {
                                 ImageSelector.with(this)
-                                        .imagePreview(dataList, position)
+                                        .imagePreview(dataList, position, true)
                             }
                             .gone(R.id.layout_image_selector_state)
                 }

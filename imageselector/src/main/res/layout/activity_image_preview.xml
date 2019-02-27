@@ -12,4 +12,8 @@
 
     <include layout="@layout/layout_image_selector_topbar" />
 
+    <include layout="@layout/layout_image_selector_bottom"/>
+
+
+
 </RelativeLayout>
