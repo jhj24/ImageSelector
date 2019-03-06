@@ -11,6 +11,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.jhj.imageselector.R
 import com.jhj.imageselector.config.ImageConfig
+import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.utils.getImgDrawable
 import com.jhj.imageselector.utils.getTColor
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
@@ -33,12 +34,18 @@ open class BaseImageActivity : AppCompatActivity() {
     protected var selectedStateImage = config.selectedStateImage
     protected var unSelectedStateImage = config.unSelectedStateImage
     protected var selectedMaxNum: Int = config.maxSelectNum //最大选择数量
+    protected var selectedMinNum: Int = config.minSelectNum //最小选择数量
     protected var selectedMode: Int = config.selectMode //图片是单选、多选
     protected var bottomBackgroundColor = config.bottomBackgroundColor
 
 
     override fun setContentView(layoutResID: Int) {
         super.setContentView(layoutResID)
+        selectedMode = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MODE, config.selectMode)
+        selectedMaxNum = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MODE, config.maxSelectNum)
+        selectedMinNum = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MODE, config.minSelectNum)
+
+
         iv_image_selector_back.setImageDrawable(getImgDrawable(topBarBackImage))
         iv_image_selector_back.setOnClickListener {
             closeActivity()

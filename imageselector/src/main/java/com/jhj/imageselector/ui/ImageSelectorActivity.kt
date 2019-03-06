@@ -60,12 +60,12 @@ open class ImageSelectorActivity : BaseImageActivity() {
     private var ignoreCompressSize: Int = config.compressSize  //忽略压缩的最小限制
     private var isCrop = config.isCrop //是否剪切
     private var isAllowTakePhoto = config.isAllowTakePhoto //选择照片是否有相机
-    private var selectedMinNum: Int = config.minSelectNum //最小选择数量
+
     private var selectImages = ArrayList<LocalMedia>() //被选中的图片
 
     //文件夹选择PopWindow
     private lateinit var folderWindow: FolderPopWindow
-    private var foldersList: List<LocalMediaFolder> = ArrayList()
+    private var foldersList: List<LocalMediaFolder> = arrayListOf()
 
     //拍照图片路径
     private var cameraPath: String? = null
@@ -191,6 +191,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
 
     private fun initAdapter(imageDataList: ArrayList<Any>) {
         selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_SELECTED_LIST).orEmpty().toArrayList()
+        updateSelectedNum(selectImages.size, "预览")
         picture_recycler.setHasFixedSize(true)
         picture_recycler.addItemDecoration(GridSpacingItemDecoration(4,
                 (2 * resources.displayMetrics.density).toInt(), false))
@@ -281,24 +282,21 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                         .putInt(ImageExtra.IMAGE_INDEX, index)
                                         .targetActivity(ImagePreviewActivity::class.java)
                                         .onResult { intent ->
-                                            if (intent != null) {
-                                                selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_SELECTED_LIST).orEmpty().toArrayList()
-                                                selectImages.forEach { selectImage ->
-                                                    previewList.forEach { image ->
-                                                        if (selectImage.path == image.path) {
-                                                            image.isChecked = true
-                                                        }
+                                            selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_SELECTED_LIST).orEmpty().toArrayList()
+                                            selectImages.forEach { selectImage ->
+                                                previewList.forEach { image ->
+                                                    if (selectImage.path == image.path) {
+                                                        image.isChecked = true
                                                     }
                                                 }
-                                                val list = arrayListOf<Any>()
-                                                if (tv_image_selector_title.text.toString() == "相机胶卷" && isAllowTakePhoto) {
-                                                    list.add(Camera())
-                                                }
-                                                list.addAll(previewList)
-                                                adapter.dataList = list
-                                                updateSelectedNum(selectImages.size, "预览")
                                             }
-
+                                            val list = arrayListOf<Any>()
+                                            if (tv_image_selector_title.text.toString() == "相机胶卷" && isAllowTakePhoto) {
+                                                list.add(Camera())
+                                            }
+                                            list.addAll(previewList)
+                                            adapter.dataList = list
+                                            updateSelectedNum(selectImages.size, "预览")
                                         }
                                 overridePendingTransition(R.anim.activity_fade_out, 0)
                             }
@@ -521,13 +519,11 @@ open class ImageSelectorActivity : BaseImageActivity() {
         ActivityResult.with(this)
                 .targentIntent(intent)
                 .onResult {
-                    if (it != null) {
-                        val uri = UCrop.getOutput(it)
-                        val cutPath = uri?.path
-                        selectImages[0].cutPath = cutPath
-                        selectImages[0].isCut = true
-                        onResult(selectImages)
-                    }
+                    val uri = UCrop.getOutput(it)
+                    val cutPath = uri?.path
+                    selectImages[0].cutPath = cutPath
+                    selectImages[0].isCut = true
+                    onResult(selectImages)
                 }
     }
 
@@ -543,7 +539,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
             images.addAll(if (images.size > 0) images.size - 1 else 0, selectionMedias)
         }*/
         val intent = Intent()
-        intent.putExtra(ImageExtra.EXTRA_SELECTED_RESULT, images)
+        intent.putParcelableArrayListExtra(ImageExtra.EXTRA_SELECTED_RESULT, images)
         setResult(Activity.RESULT_OK, intent)
         closeActivity()
     }

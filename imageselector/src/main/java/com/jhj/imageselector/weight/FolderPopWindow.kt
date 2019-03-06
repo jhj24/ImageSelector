@@ -32,8 +32,8 @@ import kotlinx.android.synthetic.main.layout_image_selector_folder.view.*
 class FolderPopWindow(private val mContext: Context) : PopupWindow() {
 
     private var isDismiss = false
-    private lateinit var view: View
-    private lateinit var adapter: SlimAdapter
+    private var view: View
+    private var adapter: SlimAdapter
 
     open val mIsAnim = true
     open val mShowAnim = R.anim.anim_in_top

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -31,7 +32,6 @@ public final class ActivityResult {
         mBundle.putByte(key, value);
         return this;
     }
-
 
     public ActivityResult putChar(String key, char value) {
         mBundle.putChar(key, value);
@@ -229,7 +229,14 @@ public final class ActivityResult {
 
     }
 
+    public void finish() {
+        Intent intent = new Intent();
+        intent.putExtras(mBundle);
+        mActivity.setResult(Activity.RESULT_OK, intent);
+        mActivity.finish();
+    }
+
     public interface OnActivityResultListener {
-        void onResult(@Nullable Intent data);
+        void onResult(@NotNull Intent data);
     }
 }

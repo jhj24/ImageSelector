@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.jhj.imageselector.R
+import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.utils.*
@@ -107,10 +108,10 @@ class ImagePreviewActivity : BaseImageActivity() {
         })
 
         layout_image_preview.setOnClickListener {
-            val intent = Intent()
-            intent.putParcelableArrayListExtra(ImageExtra.IMAGE_SELECTED_LIST, selectImages.toArrayList())
-            setResult(Activity.RESULT_OK, intent)
-            closeActivity()
+            ActivityResult.with(this)
+                    .putParcelableArrayList(ImageExtra.IMAGE_SELECTED_LIST, selectImages.toArrayList())
+                    .finish()
+            overridePendingTransition(0, R.anim.activity_fade_in)
         }
 
     }

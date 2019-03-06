@@ -31,7 +31,7 @@ public final class OnResultFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ACTIVITY_CODE && listener != null) {
+        if (requestCode == ACTIVITY_CODE && resultCode == Activity.RESULT_OK && listener != null && data != null) {
             listener.onResult(data);
         }
     }
