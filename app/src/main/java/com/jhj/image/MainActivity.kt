@@ -38,10 +38,9 @@ class MainActivity : AppCompatActivity() {
                                         .into(it)
                             }
                             .clicked {
-                                ImageSelector.with(this)
-                                        .imagePreview(dataList, position, true) {
-                                            adapter.setDataList(it)
-                                        }
+                                ImageSelector.imagePreview(this@MainActivity, dataList, position, true) {
+                                    adapter.setDataList(it)
+                                }
                             }
                             .gone(R.id.layout_image_selector_state)
                 }
@@ -50,11 +49,10 @@ class MainActivity : AppCompatActivity() {
                         (2 * resources.displayMetrics.density).toInt(), false))
 
         btn_selector.setOnClickListener {
-            ImageSelector.with(this)
-                    .imageSelected(ImageExtra.MULTI, dataList) {
-                        this.dataList = it
-                        adapter.setDataList(it)
-                    }
+            ImageSelector.imageSelected(this@MainActivity, ImageExtra.MULTI, dataList) {
+                this.dataList = it
+                adapter.setDataList(it)
+            }
         }
     }
 

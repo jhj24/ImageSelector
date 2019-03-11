@@ -42,8 +42,8 @@ open class BaseImageActivity : AppCompatActivity() {
     override fun setContentView(layoutResID: Int) {
         super.setContentView(layoutResID)
         selectedMode = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MODE, config.selectMode)
-        selectedMaxNum = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MODE, config.maxSelectNum)
-        selectedMinNum = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MODE, config.minSelectNum)
+        selectedMaxNum = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MAX_NUM, config.maxSelectNum)
+        selectedMinNum = intent.getIntExtra(ImageExtra.EXTRA_SELECTED_MIN_NUM, config.minSelectNum)
 
 
         iv_image_selector_back.setImageDrawable(getImgDrawable(topBarBackImage))

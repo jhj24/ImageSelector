@@ -21,7 +21,6 @@ import kotlinx.android.synthetic.main.activity_image_preview.*
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
 import org.jetbrains.anko.backgroundColor
-import org.jetbrains.anko.textColor
 import org.jetbrains.anko.toast
 import uk.co.senab.photoview.PhotoView
 
@@ -39,11 +38,11 @@ class ImagePreviewActivity : BaseImageActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_preview)
 
-        selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_SELECTED_LIST).orEmpty().toArrayList()
-        imageList = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.IMAGE_LIST).orEmpty().toArrayList()
-        var imageIndex = intent.getIntExtra(ImageExtra.IMAGE_INDEX, 0)
-        val isImageDelete = intent.getBooleanExtra(ImageExtra.IMAGE_IS_DELETE, false)
-        val isImageSelector = intent.getBooleanExtra(ImageExtra.IMAGE_IS_SELECTED, false)
+        selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_IMAGE_SELECTED_LIST).orEmpty().toArrayList()
+        imageList = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_IMAGE_LIST).orEmpty().toArrayList()
+        var imageIndex = intent.getIntExtra(ImageExtra.EXTRA_IMAGE_INDEX, 0)
+        val isImageDelete = intent.getBooleanExtra(ImageExtra.EXTRA_IMAGE_IS_DELETE, false)
+        val isImageSelector = intent.getBooleanExtra(ImageExtra.EXTRA_IMAGE_IS_SELECTED, false)
 
         layout_image_selector_title.backgroundColor = (255 * 0.1).toInt() shl 24 or toolbarColor
         layout_bottom_preview.backgroundColor = (255 * 0.1).toInt() shl 24 or toolbarColor
@@ -61,6 +60,9 @@ class ImagePreviewActivity : BaseImageActivity() {
             val isLeftSweep = imageIndex < imageList.size - 1
             imageList.removeAt(imageIndex)
             if (imageList.size <= 0) {
+                val intent = Intent()
+                intent.putParcelableArrayListExtra(ImageExtra.EXTRA_SELECTED_RESULT,selectImages);
+                setResult(Activity.RESULT_OK,intent)
                 closeActivity()
                 return@setOnClickListener
             }
@@ -109,7 +111,7 @@ class ImagePreviewActivity : BaseImageActivity() {
 
         layout_image_preview.setOnClickListener {
             ActivityResult.with(this)
-                    .putParcelableArrayList(ImageExtra.IMAGE_SELECTED_LIST, selectImages.toArrayList())
+                    .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, selectImages.toArrayList())
                     .finish()
             overridePendingTransition(0, R.anim.activity_fade_in)
         }
@@ -212,5 +214,12 @@ class ImagePreviewActivity : BaseImageActivity() {
         override fun getItemPosition(`object`: Any): Int {
             return POSITION_NONE
         }
+    }
+
+    override fun onBackPressed() {
+        val intent = Intent()
+        intent.putParcelableArrayListExtra(ImageExtra.EXTRA_SELECTED_RESULT,selectImages)
+        setResult(Activity.RESULT_OK,intent)
+        super.onBackPressed()
     }
 }

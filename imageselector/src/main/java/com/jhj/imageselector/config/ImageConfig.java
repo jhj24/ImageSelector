@@ -64,8 +64,8 @@ public class ImageConfig {
     public boolean isAllowTakePhoto = true;
     public int maxSelectNum = 9;
     public int minSelectNum = 1;
-    public boolean isCompress = false;
-    public boolean isCrop = true;
+    public boolean isCompress = true;
+    public boolean isCrop = false;
     public int selectMode = ImageExtra.MULTI;
     public int compressSize = 100;
 
