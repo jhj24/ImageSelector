@@ -72,9 +72,9 @@ class ImagePreviewActivity : BaseImageActivity() {
             imageViewPager.currentItem = currentIndex
 
             val animInRes = if (isLeftSweep) {
-                R.anim.anim_image_in_left
+                R.anim.anim_image_delete_left
             } else {
-                R.anim.anim_image_in_right
+                R.anim.anim_image_delete_right
             }
             val animIn = AnimationUtils.loadAnimation(this@ImagePreviewActivity, animInRes)
             animIn.fillAfter = true
@@ -113,7 +113,7 @@ class ImagePreviewActivity : BaseImageActivity() {
             ActivityResult.with(this)
                     .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, selectImages.toArrayList())
                     .finish()
-            overridePendingTransition(0, R.anim.activity_fade_in)
+            overridePendingTransition(0, R.anim.activity_fade_out)
         }
 
     }

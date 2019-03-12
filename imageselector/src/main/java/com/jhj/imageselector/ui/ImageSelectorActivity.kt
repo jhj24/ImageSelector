@@ -42,7 +42,7 @@ import java.io.File
 open class ImageSelectorActivity : BaseImageActivity() {
 
     private lateinit var adapter: SlimAdapter
-    private lateinit var previewList: List<LocalMedia>
+    private lateinit var previewList: ArrayList<LocalMedia>
 
     //上一次选中图片的信息
     private lateinit var lastTimeSelectedInjector: ViewInjector
@@ -102,7 +102,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
         layout_image_preview.setOnClickListener {
             if (selectImages.size > 0) {
                 startActivity<ImagePreviewActivity>(ImageExtra.EXTRA_IMAGE_LIST to selectImages)
-                overridePendingTransition(R.anim.activity_fade_out, 0)
+                overridePendingTransition(R.anim.activity_fade_in, 0)
             } else {
                 toast("请选择要预览的图片")
             }
@@ -123,7 +123,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
         }
         folderWindow.setItemClickListener(object : FolderPopWindow.OnItemClickListener {
             override fun onItemClicked(bean: LocalMediaFolder) {
-                previewList = bean.images
+                previewList = bean.images.toArrayList()
                 val list = arrayListOf<Any>()
                 if (bean.name == "相机胶卷" && isAllowTakePhoto) {
                     list.add(Camera())
@@ -180,7 +180,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                 imageDataList.add(Camera())
                             }
                             imageDataList.addAll(it[0].images)
-                            previewList = it[0].images
+                            previewList = it[0].images.toArrayList()
                             initAdapter(imageDataList)
                         }
                     } else {
@@ -205,6 +205,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                         .asBitmap()
                                         .load(localMedia.path)
                                         .into(it)
+
 
                             }
                             .with<ImageView>(R.id.iv_image_selector_state) {
@@ -299,7 +300,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                             adapter.dataList = list
                                             updateSelectedNum(selectImages.size, "预览")
                                         }
-                                overridePendingTransition(R.anim.activity_fade_out, 0)
+                                overridePendingTransition(R.anim.activity_fade_in, 0)
                             }
                 }
                 .register<Camera>(R.layout.layout_image_selector_grid_camera) { viewInjector, localMedia, i ->
@@ -328,46 +329,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                             cameraPath = cameraFile.absolutePath
                             val imageUri = parUri(cameraFile)
                             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-                            ActivityResult.with(this)
-                                    .targentIntent(cameraIntent)
-                                    .onResult {
-                                        try {
-                                            val file = File(cameraPath)
-                                            //启动MediaScanner服务，扫描媒体文件
-                                            sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                        }
-
-                                        //单选
-                                        if (selectedMode == ImageExtra.SINGLE) {
-                                            singleMediaImage()
-                                        }
-
-                                        // 生成新拍照片或视频对象
-                                        val media = LocalMedia()
-                                        val pictureType = MediaMimeType.createImageType(cameraPath)
-                                        media.path = cameraPath
-                                        media.pictureType = pictureType
-                                        media.duration = 0
-                                        media.isChecked = true
-                                        media.mimeType = ImageExtra.TYPE_IMAGE
-                                        selectImages.add(media)
-                                        adapter.addData(1, media)
-
-                                        // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
-                                        manualSaveFolder(media)
-                                        updateSelectedNum(selectImages.size, "预览")
-
-                                        if (isOnlyCamera) {
-                                            val intent = Intent()
-                                            intent.putExtra(ImageExtra.EXTRA_SELECTED_RESULT, media)
-                                            setResult(Activity.RESULT_OK, intent)
-                                            finish()
-                                            overridePendingTransition(0, R.anim.activity_fade_out2)
-                                        }
-
-                                    }
+                            startActivityForResult(cameraIntent,ImageExtra.EXTRA_CAMERA)
                         }
                     } else {
                         deniedPermissions.forEach {
@@ -498,6 +460,50 @@ open class ImageSelectorActivity : BaseImageActivity() {
             newFolder.firstImagePath = ""
             folders.add(newFolder)
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (ImageExtra.EXTRA_CAMERA == requestCode) {
+            if (resultCode == Activity.RESULT_OK) {
+                try {
+                    val file = File(cameraPath)
+                    //启动MediaScanner服务，扫描媒体文件
+                    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                //单选
+                if (selectedMode == ImageExtra.SINGLE) {
+                    singleMediaImage()
+                }
+
+                // 生成新拍照片或视频对象
+                val media = LocalMedia()
+                val pictureType = MediaMimeType.createImageType(cameraPath)
+                media.path = cameraPath
+                media.pictureType = pictureType
+                media.duration = 0
+                media.isChecked = true
+                media.mimeType = ImageExtra.TYPE_IMAGE
+                selectImages.add(media)
+                previewList.add(0,media)
+                adapter.addData(1, media)
+
+                // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
+                manualSaveFolder(media)
+                updateSelectedNum(selectImages.size, "预览")
+                if (isOnlyCamera) {
+                    val intent = Intent()
+                    intent.putExtra(ImageExtra.EXTRA_SELECTED_RESULT, media)
+                    setResult(Activity.RESULT_OK, intent)
+                    finish()
+                    overridePendingTransition(0, R.anim.activity_fade_in_camera)
+                }
+            }
+        }
+
     }
 
     private fun startCrop(url: String) {

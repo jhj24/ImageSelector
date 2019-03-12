@@ -95,7 +95,7 @@ open class BaseImageActivity : AppCompatActivity() {
      */
     fun closeActivity() {
         finish()
-        overridePendingTransition(0, R.anim.activity_fade_in)
+        overridePendingTransition(0, R.anim.activity_fade_out)
     }
 
     override fun onBackPressed() {

@@ -16,6 +16,7 @@ object ImageExtra {
     const val EXTRA_SELECTED_MAX_NUM = "selected_max_num"
     const val EXTRA_SELECTED_MIN_NUM = "selected_min_num"
     const val EXTRA_SELECTED_RESULT = "selected_result"
+    const val EXTRA_CAMERA = 0x0010
 
 
     const val TYPE_ALL = 0

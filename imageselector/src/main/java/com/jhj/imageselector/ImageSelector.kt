@@ -16,11 +16,11 @@ object ImageSelector {
     @JvmOverloads
     fun singleSelected(mActivity: Activity, localMedia: LocalMedia, body: (List<LocalMedia>) -> Unit = {}) {
         val list = arrayListOf<LocalMedia>(localMedia)
-        imageSelected(mActivity, ImageExtra.SINGLE, list, body = body)
+        selected(mActivity, ImageExtra.SINGLE, list, body = body)
     }
 
     fun multiSelected(mActivity: Activity, imageList: List<LocalMedia> = arrayListOf(), selectedMaxNum: Int = 9, selectedMinNum: Int = 1, body: (List<LocalMedia>) -> Unit = {}) {
-        imageSelected(
+        selected(
                 mActivity = mActivity,
                 imageList = imageList,
                 selectedMaxNum = selectedMaxNum,
@@ -29,7 +29,7 @@ object ImageSelector {
     }
 
     @JvmOverloads
-    fun imageSelected(mActivity: Activity, selectedMode: Int = ImageExtra.MULTI, imageList: List<LocalMedia> = arrayListOf(), selectedMaxNum: Int = 9, selectedMinNum: Int = 1, body: (List<LocalMedia>) -> Unit = {}) {
+    fun selected(mActivity: Activity, selectedMode: Int = ImageExtra.MULTI, imageList: List<LocalMedia> = arrayListOf(), selectedMaxNum: Int = 9, selectedMinNum: Int = 1, body: (List<LocalMedia>) -> Unit = {}) {
         ActivityResult.with(mActivity)
                 .targetActivity(ImageSelectorActivity::class.java)
                 .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, imageList.toArrayList())
@@ -40,11 +40,11 @@ object ImageSelector {
                     val list = data.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_SELECTED_RESULT).orEmpty()
                     body(list)
                 }
-        mActivity.overridePendingTransition(R.anim.activity_fade_out, 0)
+        mActivity.overridePendingTransition(R.anim.activity_fade_in, 0)
     }
 
     @JvmOverloads
-    fun imagePreview(mActivity: Activity, imageList: List<LocalMedia>, currentIndex: Int = 0, isDelete: Boolean = false, body: (List<LocalMedia>) -> Unit = {}) {
+    fun preview(mActivity: Activity, imageList: List<LocalMedia>, currentIndex: Int = 0, isDelete: Boolean = false, body: (List<LocalMedia>) -> Unit = {}) {
         val intent = Intent(mActivity, ImagePreviewActivity::class.java)
         intent.putParcelableArrayListExtra(ImageExtra.EXTRA_IMAGE_LIST, imageList.toArrayList<Parcelable>())
         intent.putExtra(ImageExtra.EXTRA_IMAGE_INDEX, currentIndex)
@@ -58,6 +58,6 @@ object ImageSelector {
                     val list = data.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_SELECTED_RESULT).orEmpty()
                     body(list)
                 }
-        mActivity.overridePendingTransition(R.anim.activity_fade_out, 0)
+        mActivity.overridePendingTransition(R.anim.activity_fade_in, 0)
     }
 }

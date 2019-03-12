@@ -36,8 +36,8 @@ class FolderPopWindow(private val mContext: Context) : PopupWindow() {
     private var adapter: SlimAdapter
 
     open val mIsAnim = true
-    open val mShowAnim = R.anim.anim_in_top
-    open val mDismissAnim = R.anim.anim_out_top
+    open val mShowAnim = R.anim.anim_folder_in
+    open val mDismissAnim = R.anim.anim_folder_out
     open val folderSize = 6
 
 
