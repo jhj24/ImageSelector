@@ -29,25 +29,25 @@ public class ImageConfig {
     @ColorRes
     public int topbarPrimary = R.color.colorPrimary1; //标题栏背景色
     @DrawableRes
-    public int titleLeftBackImage = R.drawable.arrow_back; //返回键图标
+    public int titleLeftBackImage = R.mipmap.arrow_back; //返回键图标
     @DrawableRes
-    public int titleArrowUpImage = R.drawable.arrow_up; //标题上拉箭头
+    public int titleArrowUpImage = R.mipmap.arrow_up; //标题上拉箭头
     @DrawableRes
-    public int titleArrowDownImage = R.drawable.arrow_down; //标题下拉箭头
+    public int titleArrowDownImage = R.mipmap.arrow_down; //标题下拉箭头
     @ColorRes
     public int titleTextColor = R.color.white; //标题文字颜色
     @ColorRes
     public int rightTextColor = R.color.white; //右边文字颜色
     @DrawableRes
-    public int selectedStateImage = R.drawable.image_checked; //图片选中时图标
+    public int selectedStateImage = R.mipmap.image_checked; //图片选中时图标
     @DrawableRes
-    public int unSelectedStateImage = R.drawable.image_unchecked; // 图片未选中时图标
+    public int unSelectedStateImage = R.mipmap.image_unchecked; // 图片未选中时图标
     @ColorRes
     public int bottomBackgroundColor = R.color.white; //底图预览背景色
     @ColorRes
     public int previewTextColor = R.color.orange; //预览字体背景色
     @DrawableRes
-    public int previewNumBackground = R.drawable.orange_oval;//图片已选数量圆点背景色
+    public int previewNumBackground = R.drawable.shape_orange_circle;//图片已选数量圆点背景色
 
 
     public UCrop.Options uCropOptions;

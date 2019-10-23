@@ -53,5 +53,6 @@
         android:gravity="center"
         android:padding="10dp"
         android:text="完成"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:visibility="gone" />
 </RelativeLayout>

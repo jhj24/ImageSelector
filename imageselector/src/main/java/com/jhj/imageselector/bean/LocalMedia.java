@@ -27,9 +27,14 @@ public class LocalMedia implements Parcelable {
     private boolean compressed;
     private int width;
     private int height;
+    private int mark;//唯一标示
 
     public LocalMedia() {
 
+    }
+
+    public LocalMedia(String path) {
+        this.path = path;
     }
 
     public LocalMedia(String path, long duration, int mimeType, String pictureType) {
@@ -39,13 +44,14 @@ public class LocalMedia implements Parcelable {
         this.pictureType = pictureType;
     }
 
-    public LocalMedia(String path, long duration, int mimeType, String pictureType, int width, int height) {
+    public LocalMedia(String path, long duration, int mimeType, String pictureType, int width, int height, int mark) {
         this.path = path;
         this.duration = duration;
         this.mimeType = mimeType;
         this.pictureType = pictureType;
         this.width = width;
         this.height = height;
+        this.mark = mark;
     }
 
     public LocalMedia(String path, long duration,
@@ -166,6 +172,14 @@ public class LocalMedia implements Parcelable {
         this.height = height;
     }
 
+    public int getMark() {
+        return mark;
+    }
+
+    public void setMark(int mark) {
+        this.mark = mark;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -186,6 +200,7 @@ public class LocalMedia implements Parcelable {
         dest.writeByte(this.compressed ? (byte) 1 : (byte) 0);
         dest.writeInt(this.width);
         dest.writeInt(this.height);
+        dest.writeInt(this.mark);
     }
 
     protected LocalMedia(Parcel in) {
@@ -202,9 +217,10 @@ public class LocalMedia implements Parcelable {
         this.compressed = in.readByte() != 0;
         this.width = in.readInt();
         this.height = in.readInt();
+        this.mark = in.readInt();
     }
 
-    public static final Parcelable.Creator<LocalMedia> CREATOR = new Parcelable.Creator<LocalMedia>() {
+    public static final Creator<LocalMedia> CREATOR = new Creator<LocalMedia>() {
         @Override
         public LocalMedia createFromParcel(Parcel source) {
             return new LocalMedia(source);

@@ -23,7 +23,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         dataList = arrayListOf()
 
-        adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
+        recyclerView.layoutManager = GridLayoutManager(this, 4)
+        recyclerView.addItemDecoration(GridSpacingItemDecoration(4, (2 * resources.displayMetrics.density).toInt(), false))
+        adapter = SlimAdapter.creator()
                 .register<LocalMedia>(R.layout.layout_image_selector_grid) { injector, bean, position ->
                     val path = when {
                         bean.isCut -> bean.cutPath
@@ -32,24 +34,22 @@ class MainActivity : AppCompatActivity() {
                     }
                     injector
                             .with<ImageView>(R.id.iv_image_selector_picture) {
-                                Glide.with(this)
+                                Glide.with(this@MainActivity)
                                         .asBitmap()
                                         .load(path)
                                         .into(it)
                             }
                             .clicked {
-                                ImageSelector.preview(this@MainActivity, dataList, position, true) {
+                                ImageSelector.deletePreview(this@MainActivity, dataList, position) {
                                     adapter.setDataList(it)
                                 }
                             }
                             .gone(R.id.layout_image_selector_state)
                 }
                 .attachTo(recyclerView)
-                .addItemDecoration(GridSpacingItemDecoration(4,
-                        (2 * resources.displayMetrics.density).toInt(), false))
 
         btn_selector.setOnClickListener {
-            ImageSelector.selected(this@MainActivity, ImageExtra.MULTI, dataList) {
+            ImageSelector.selected(this@MainActivity, ImageExtra.MULTI, dataList, isImageEditable = true) {
                 this.dataList = it
                 adapter.setDataList(it)
             }

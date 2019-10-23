@@ -12,15 +12,15 @@ import android.support.v4.content.ContextCompat
  * Created by jhj on 19-1-21.
  */
 
-fun <T> List<T>.toArrayList(): ArrayList<T> {
-    return ArrayList(this)
+fun <T> List<T>?.toArrayList(): ArrayList<T> {
+    return ArrayList(this.orEmpty())
 }
 
-fun Activity.getTColor(@ColorRes textColor: Int): Int {
+fun Activity.getResColor(@ColorRes textColor: Int): Int {
     return ContextCompat.getColor(this, textColor)
 }
 
-fun Activity.getImgDrawable(@DrawableRes drawableRes: Int): Drawable? {
+fun Activity.getResDrawable(@DrawableRes drawableRes: Int): Drawable? {
     return ContextCompat.getDrawable(this, drawableRes)
 }
 

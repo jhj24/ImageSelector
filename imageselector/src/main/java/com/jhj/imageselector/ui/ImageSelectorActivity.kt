@@ -14,24 +14,26 @@ import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
 import android.support.v7.widget.GridLayoutManager
 import android.text.TextUtils
+import android.view.View
 import android.widget.ImageView
-import com.bumptech.glide.Glide
+import com.jhj.imageselector.ImageSelector
 import com.jhj.imageselector.R
-import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.bean.LocalMediaFolder
 import com.jhj.imageselector.config.ImageExtra
-import com.jhj.imageselector.permissions.PermissionsCheck
 import com.jhj.imageselector.utils.*
 import com.jhj.imageselector.weight.FolderPopWindow
 import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import com.yalantis.ucrop.UCrop
+import com.zgdj.qualitycontrol.utils.activityresult.ActivityResult
+import com.zgdj.qualitycontrol.utils.permissions.PermissionsCheck
 import kotlinx.android.synthetic.main.activity_image_selector.*
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
-import org.jetbrains.anko.*
+import org.jetbrains.anko.backgroundColor
+import org.jetbrains.anko.toast
 import java.io.File
 
 /**
@@ -42,11 +44,11 @@ import java.io.File
 open class ImageSelectorActivity : BaseImageActivity() {
 
     private lateinit var adapter: SlimAdapter
-    private lateinit var previewList: ArrayList<LocalMedia>
+    private var previewList: ArrayList<LocalMedia> = arrayListOf()
 
     //上一次选中图片的信息
-    private lateinit var lastTimeSelectedInjector: ViewInjector
-    private lateinit var lastTimeSelectedLocalMedia: LocalMedia
+    private var lastTimeSelectedInjector: ViewInjector? = null
+    private var lastTimeSelectedLocalMedia: LocalMedia? = null
 
     //动画
     private var isSelectedImageAnim = config.isImageAnim
@@ -60,8 +62,6 @@ open class ImageSelectorActivity : BaseImageActivity() {
     private var ignoreCompressSize: Int = config.compressSize  //忽略压缩的最小限制
     private var isCrop = config.isCrop //是否剪切
     private var isAllowTakePhoto = config.isAllowTakePhoto //选择照片是否有相机
-
-    private var selectImages = ArrayList<LocalMedia>() //被选中的图片
 
     //文件夹选择PopWindow
     private lateinit var folderWindow: FolderPopWindow
@@ -89,20 +89,18 @@ open class ImageSelectorActivity : BaseImageActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_selector)
+        isOnlyCamera = intent.getBooleanExtra(ImageExtra.EXTRA_IMAGE_IS_ONLY_CAMERA, config.isOnlyCamera)
         if (isOnlyCamera) {
             startOpenCamera()
-            finish()
-            return
         }
 
         mediaLoading()
 
         //预览
-        layout_bottom_preview.backgroundColor = getTColor(bottomBackgroundColor)
+        layout_bottom_preview.backgroundColor = getResColor(bottomBackgroundColor)
         layout_image_preview.setOnClickListener {
-            if (selectImages.size > 0) {
-                startActivity<ImagePreviewActivity>(ImageExtra.EXTRA_IMAGE_LIST to selectImages)
-                overridePendingTransition(R.anim.activity_fade_in, 0)
+            if (imageSelectedList.size > 0) {
+                ImageSelector.preview(this, imageSelectedList)
             } else {
                 toast("请选择要预览的图片")
             }
@@ -113,13 +111,14 @@ open class ImageSelectorActivity : BaseImageActivity() {
     private fun initTopBar() {
         folderWindow = FolderPopWindow(this)
         tv_image_selector_title.compoundDrawablePadding = 10
-        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getImgDrawable(titleArrowDownImage), null)
+        tv_image_selector_title.text = "相机胶卷"
+        tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getResDrawable(titleArrowDownImage), null)
         tv_image_selector_title.setOnClickListener {
-            tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getImgDrawable(titleArrowUpImage), null)
+            tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getResDrawable(titleArrowUpImage), null)
             folderWindow.showAsDropDown(it)
         }
         folderWindow.setOnDismissListener {
-            tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getImgDrawable(titleArrowDownImage), null)
+            tv_image_selector_title.setCompoundDrawablesWithIntrinsicBounds(null, null, getResDrawable(titleArrowDownImage), null)
         }
         folderWindow.setItemClickListener(object : FolderPopWindow.OnItemClickListener {
             override fun onItemClicked(bean: LocalMediaFolder) {
@@ -129,22 +128,23 @@ open class ImageSelectorActivity : BaseImageActivity() {
                     list.add(Camera())
                 }
                 list.addAll(bean.images)
-                adapter.dataList = list
+                adapter.setDataList(list)
                 tv_image_selector_title.text = bean.name
             }
         })
 
+        tv_image_selector_right.visibility = View.VISIBLE
         tv_image_selector_right.setOnClickListener {
-            val pictureType = if (selectImages.size > 0)
-                selectImages[0].pictureType
+            val pictureType = if (imageSelectedList.size > 0)
+                imageSelectedList[0].pictureType
             else
                 ""
             // 如果设置了图片最小选择数量，则判断是否满足条件
             val isImage = pictureType.startsWith(ImageExtra.IMAGE) || pictureType == ""
-            if (selectImages.size == 0) {
+            if (imageSelectedList.size == 0) {
                 toast("请选择图片")
                 return@setOnClickListener
-            } else if (selectedMode == ImageExtra.MULTI && selectImages.size < selectedMinNum) {
+            } else if (selectedMode == ImageExtra.MULTI && imageSelectedList.size < selectedMinNum) {
                 val str = if (isImage)
                     "图片最低选择不能少于${selectedMinNum}张"
                 else
@@ -153,17 +153,17 @@ open class ImageSelectorActivity : BaseImageActivity() {
                 return@setOnClickListener
             }
             if (isCrop && isImage && selectedMode == ImageExtra.SINGLE) {
-                startCrop(selectImages[0].path)
+                startCrop(imageSelectedList[0].path)
             } else if (isImage && isCompress) {
                 // 图片才压缩，视频不管
-                ImageCompress.luban(this, ignoreCompressSize, selectImages) {
+                ImageCompress.luban(this, ignoreCompressSize, imageSelectedList) {
                     onResult(it.toArrayList())
                 }
             } else {
-                onResult(selectImages)
+                onResult(imageSelectedList)
             }
         }
-        layout_image_selector_title.backgroundColor = getTColor(toolbarColor)
+        layout_image_selector_title.backgroundColor = getResColor(toolbarColor)
     }
 
 
@@ -191,51 +191,45 @@ open class ImageSelectorActivity : BaseImageActivity() {
     }
 
     private fun initAdapter(imageDataList: ArrayList<Any>) {
-        selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_IMAGE_SELECTED_LIST).orEmpty().toArrayList()
-        updateSelectedNum(selectImages.size, "预览")
+        updateSelectedNum(imageSelectedList.size, "预览")
         picture_recycler.setHasFixedSize(true)
         picture_recycler.addItemDecoration(GridSpacingItemDecoration(4,
                 (2 * resources.displayMetrics.density).toInt(), false))
         picture_recycler.layoutManager = GridLayoutManager(this, 4)
-        adapter = SlimAdapter.creator(GridLayoutManager(this, 4))
-                .register<LocalMedia>(R.layout.layout_image_selector_grid) { viewInjector, localMedia, i ->
-                    viewInjector
+        adapter = SlimAdapter.creator()
+                .register<LocalMedia>(R.layout.layout_image_selector_grid) { injector, bean, position ->
+                    injector
                             .with<ImageView>(R.id.iv_image_selector_picture) {
-                                Glide.with(this)
-                                        .asBitmap()
-                                        .load(localMedia.path)
-                                        .into(it)
-
-
+                                imageNoCache(bean.path, it)
                             }
                             .with<ImageView>(R.id.iv_image_selector_state) {
-                                val selectedList = selectImages.filter { image -> image.path == localMedia.path }
+                                val selectedList = imageSelectedList.filter { image -> image.path == bean.path }
                                 if (selectedList.isNotEmpty()) {
-                                    localMedia.isChecked = true
+                                    bean.isChecked = true
                                     it.isSelected = true
                                 }
-                                it.isSelected = localMedia.isChecked
+                                it.isSelected = bean.isChecked
                                 val drawable = selected(selectedStateImage, unSelectedStateImage)
                                 it.setImageDrawable(drawable)
-                                if (selectedMode == ImageExtra.SINGLE && localMedia.isChecked) {
-                                    lastTimeSelectedInjector = viewInjector
-                                    lastTimeSelectedLocalMedia = localMedia
+                                if (selectedMode == ImageExtra.SINGLE && bean.isChecked) {
+                                    lastTimeSelectedInjector = injector
+                                    lastTimeSelectedLocalMedia = bean
                                 }
                             }
                             .clicked(R.id.layout_image_selector_state) {
-                                val pictureType = if (selectImages.size > 0) selectImages.get(0).pictureType else ""
-                                val stateImageView = viewInjector.getView<ImageView>(R.id.iv_image_selector_state)
-                                val imageView = viewInjector.getView<ImageView>(R.id.iv_image_selector_picture)
+                                val pictureType = if (imageSelectedList.size > 0) imageSelectedList.get(0).pictureType else ""
+                                val stateImageView = injector.getView<ImageView>(R.id.iv_image_selector_state)
+                                val imageView = injector.getView<ImageView>(R.id.iv_image_selector_picture)
                                 val isChecked = stateImageView.isSelected
                                 if (!TextUtils.isEmpty(pictureType)) {
-                                    val toEqual = MediaMimeType.mimeToEqual(pictureType, localMedia.pictureType)
+                                    val toEqual = MediaMimeType.mimeToEqual(pictureType, bean.pictureType)
                                     if (!toEqual) {
                                         toast("不能同时选择图片或视频")
                                         return@clicked
                                     }
                                 }
                                 //达到最大选择数，点击未选中的ImageView
-                                if (selectImages.size >= selectedMaxNum && !isChecked) {
+                                if (imageSelectedList.size >= selectedMaxNum && !isChecked) {
                                     val eqImg = pictureType.startsWith(ImageExtra.IMAGE)
                                     val str = if (eqImg)
                                         "你最多可以选择${selectedMaxNum}张图片"
@@ -246,46 +240,46 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                 }
 
                                 stateImageView.isSelected = !isChecked
-                                localMedia.isChecked = !isChecked
+                                bean.isChecked = !isChecked
 
                                 if (stateImageView.isSelected) {
                                     // 如果是单选，则清空已选中的并刷新列表(作单一选择)
                                     if (selectedMode == ImageExtra.SINGLE) {
                                         singleMediaImage()
-                                        lastTimeSelectedInjector = viewInjector
-                                        lastTimeSelectedLocalMedia = localMedia
+                                        lastTimeSelectedInjector = injector
+                                        lastTimeSelectedLocalMedia = bean
                                     }
                                     stateImageView.startAnimation(selectedAnim)
-                                    selectImages.add(localMedia)
-                                    localMedia.num = selectImages.size
+                                    imageSelectedList.add(bean)
+                                    bean.num = imageSelectedList.size
                                     if (isSelectedImageAnim) {
                                         scaleAnim(imageView, originalSize, zoomSize)
-                                        imageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_true), PorterDuff.Mode.SRC_ATOP)
+                                        imageView.setColorFilter(ContextCompat.getColor(this@ImageSelectorActivity, R.color.image_overlay_true), PorterDuff.Mode.SRC_ATOP)
                                     }
                                 } else {
-                                    val selectedList = selectImages.filter { image -> image.path == localMedia.path }
-                                    selectImages.removeAll(selectedList)
+                                    val selectedList = imageSelectedList.filter { image -> image.path == bean.path }
+                                    imageSelectedList.removeAll(selectedList)
                                     if (isSelectedImageAnim) {
                                         scaleAnim(imageView, zoomSize, originalSize)
-                                        imageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
+                                        imageView.setColorFilter(ContextCompat.getColor(this@ImageSelectorActivity, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
                                     }
                                 }
-                                updateSelectedNum(selectImages.size, "预览")
+                                updateSelectedNum(imageSelectedList.size, "预览")
                             }
                             .clicked {
-                                var index = i
-                                if (isAllowTakePhoto && adapter.dataList[0] is Camera) {
-                                    index = i - 1
+                                var index = position
+                                if (isAllowTakePhoto && adapter.getDataList<Camera>().get(0) is Camera) {
+                                    index = position - 1
                                 }
-                                ActivityResult.with(this)
+                                ActivityResult.with(this@ImageSelectorActivity)
                                         .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_LIST, previewList.toArrayList())
-                                        .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, selectImages)
+                                        .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, imageSelectedList)
                                         .putBoolean(ImageExtra.EXTRA_IMAGE_IS_SELECTED, true)
                                         .putInt(ImageExtra.EXTRA_IMAGE_INDEX, index)
                                         .targetActivity(ImagePreviewActivity::class.java)
                                         .onResult { intent ->
-                                            selectImages = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_IMAGE_SELECTED_LIST).orEmpty().toArrayList()
-                                            selectImages.forEach { selectImage ->
+                                            imageSelectedList = intent?.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_IMAGE_SELECTED_LIST).orEmpty().toArrayList()
+                                            imageSelectedList.forEach { selectImage ->
                                                 previewList.forEach { image ->
                                                     if (selectImage.path == image.path) {
                                                         image.isChecked = true
@@ -297,15 +291,15 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                                 list.add(Camera())
                                             }
                                             list.addAll(previewList)
-                                            adapter.dataList = list
-                                            updateSelectedNum(selectImages.size, "预览")
+                                            adapter.setDataList(list)
+                                            updateSelectedNum(imageSelectedList.size, "预览")
                                         }
-                                overridePendingTransition(R.anim.activity_fade_in, 0)
+                                overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
                             }
                 }
-                .register<Camera>(R.layout.layout_image_selector_grid_camera) { viewInjector, localMedia, i ->
-                    viewInjector.clicked {
-                        if (selectImages.size >= selectedMaxNum) {
+                .register<Camera>(R.layout.layout_image_selector_grid_camera) { injector, bean, position ->
+                    injector.clicked {
+                        if (imageSelectedList.size >= selectedMaxNum) {
                             toast("你最多可以选择${selectedMaxNum}张图片")
                             return@clicked
                         }
@@ -329,7 +323,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                             cameraPath = cameraFile.absolutePath
                             val imageUri = parUri(cameraFile)
                             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-                            startActivityForResult(cameraIntent,ImageExtra.EXTRA_CAMERA)
+                            startActivityForResult(cameraIntent, ImageExtra.EXTRA_CAMERA)
                         }
                     } else {
                         deniedPermissions.forEach {
@@ -368,16 +362,16 @@ open class ImageSelectorActivity : BaseImageActivity() {
      * 单选模式
      */
     private fun singleMediaImage() {
-        if (selectImages.size > 0) {
-            selectImages.clear()
-            val lastTimeSelectedImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_selector_picture)
-            val lastTimeSelectedStateImageView = lastTimeSelectedInjector.getView<ImageView>(R.id.iv_image_selector_state)
-            if (isSelectedImageAnim) {
+        if (imageSelectedList.size > 0) {
+            imageSelectedList.clear()
+            val lastTimeSelectedImageView = lastTimeSelectedInjector?.getView<ImageView>(R.id.iv_image_selector_picture)
+            val lastTimeSelectedStateImageView = lastTimeSelectedInjector?.getView<ImageView>(R.id.iv_image_selector_state)
+            if (isSelectedImageAnim && lastTimeSelectedImageView != null) {
                 scaleAnim(lastTimeSelectedImageView, zoomSize, originalSize)
                 lastTimeSelectedImageView.setColorFilter(ContextCompat.getColor(this, R.color.image_overlay_false), PorterDuff.Mode.SRC_ATOP)
             }
-            lastTimeSelectedStateImageView.isSelected = false
-            lastTimeSelectedLocalMedia.isChecked = false
+            lastTimeSelectedStateImageView?.isSelected = false
+            lastTimeSelectedLocalMedia?.isChecked = false
         }
     }
 
@@ -487,19 +481,18 @@ open class ImageSelectorActivity : BaseImageActivity() {
                 media.duration = 0
                 media.isChecked = true
                 media.mimeType = ImageExtra.TYPE_IMAGE
-                selectImages.add(media)
-                previewList.add(0,media)
+                imageSelectedList.add(media)
+                previewList.add(0, media)
                 adapter.addData(1, media)
 
                 // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
                 manualSaveFolder(media)
-                updateSelectedNum(selectImages.size, "预览")
+                updateSelectedNum(imageSelectedList.size, "预览")
                 if (isOnlyCamera) {
-                    val intent = Intent()
-                    intent.putExtra(ImageExtra.EXTRA_SELECTED_RESULT, media)
-                    setResult(Activity.RESULT_OK, intent)
-                    finish()
-                    overridePendingTransition(0, R.anim.activity_fade_in_camera)
+                    ActivityResult.with(this)
+                            .putParcelableArrayList(ImageExtra.EXTRA_SELECTED_RESULT, arrayListOf(media))
+                            .finish()
+                    overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
                 }
             }
         }
@@ -509,9 +502,9 @@ open class ImageSelectorActivity : BaseImageActivity() {
     private fun startCrop(url: String) {
         if (uCropOptions == null) {
             uCropOptions = UCrop.Options()
-            uCropOptions.setStatusBarColor(getTColor(statusColor))
-            uCropOptions.setToolbarColor(getTColor(toolbarColor))
-            uCropOptions.setToolbarWidgetColor(getTColor(titleTextColor))
+            uCropOptions.setStatusBarColor(getResColor(statusColor))
+            uCropOptions.setToolbarColor(getResColor(toolbarColor))
+            uCropOptions.setToolbarWidgetColor(getResColor(titleTextColor))
             uCropOptions.setHideBottomControls(isHideUCropBottomControl) // 是否隐藏底部容器
             uCropOptions.setFreeStyleCropEnabled(isFreeStyleCropEnabled) //是否能调整裁剪框
             uCropOptions.setCompressionQuality(uCropCompressQuality) ////设置裁剪的图片质量，取值0-100
@@ -525,12 +518,14 @@ open class ImageSelectorActivity : BaseImageActivity() {
                 .getIntent(this)
         ActivityResult.with(this)
                 .targentIntent(intent)
-                .onResult {
-                    val uri = UCrop.getOutput(it)
-                    val cutPath = uri?.path
-                    selectImages[0].cutPath = cutPath
-                    selectImages[0].isCut = true
-                    onResult(selectImages)
+                .onResult { intent ->
+                    intent?.let {
+                        val uri = UCrop.getOutput(it)
+                        val cutPath = uri?.path
+                        imageSelectedList[0].cutPath = cutPath
+                        imageSelectedList[0].isCut = true
+                        onResult(imageSelectedList)
+                    }
                 }
     }
 
@@ -541,14 +536,10 @@ open class ImageSelectorActivity : BaseImageActivity() {
      * @param images
      */
     private fun onResult(images: ArrayList<LocalMedia>) {
-        /*dismissCompressDialog()
-        if (config.camera && config.selectionMode == ImageExtra.MULTIPLE && selectionMedias != null) {
-            images.addAll(if (images.size > 0) images.size - 1 else 0, selectionMedias)
-        }*/
-        val intent = Intent()
-        intent.putParcelableArrayListExtra(ImageExtra.EXTRA_SELECTED_RESULT, images)
-        setResult(Activity.RESULT_OK, intent)
-        closeActivity()
+        ActivityResult.with(this)
+                .putParcelableArrayList(ImageExtra.EXTRA_SELECTED_RESULT, images.toArrayList())
+                .finish()
+        overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
     }
 
     private class Camera

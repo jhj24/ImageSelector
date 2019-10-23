@@ -10,6 +10,7 @@ object ImageExtra {
     const val EXTRA_IMAGE_INDEX = "image_index"
     const val EXTRA_IMAGE_IS_SELECTED = "image_is_selected"
     const val EXTRA_IMAGE_IS_DELETE = "image_is_delete"
+    const val EXTRA_IMAGE_IS_ONLY_CAMERA = "image_is_only_camera"
 
 
     const val EXTRA_SELECTED_MODE = "selected_mode"

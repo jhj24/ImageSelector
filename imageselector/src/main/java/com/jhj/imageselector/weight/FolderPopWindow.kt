@@ -60,7 +60,7 @@ class FolderPopWindow(private val mContext: Context) : PopupWindow() {
         val density = mContext.resources.displayMetrics.density
         val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (folderSize * 60 * density).toInt())
         view.recycler_image_selector_folder.layoutParams = params
-        adapter = SlimAdapter.creator(LinearLayoutManager(mContext))
+        adapter = SlimAdapter.creator()
                 .register<LocalMediaFolder>(R.layout.layout_image_selector_folder_item) { injector, bean, position ->
                     injector
                             .with<ImageView>(R.id.iv_folder_image) {

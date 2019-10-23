@@ -32,15 +32,21 @@ object MediaLoading {
             MediaStore.MediaColumns.MIME_TYPE,
             MediaStore.MediaColumns.WIDTH,
             MediaStore.MediaColumns.HEIGHT,
-            DURATION)
+            DURATION,
+            MediaStore.MediaColumns.DATE_MODIFIED)
 
     // 图片
     private val SELECTION = (MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
-            + " AND " + MediaStore.MediaColumns.SIZE + ">0")
+            + " AND " + MediaStore.MediaColumns.SIZE + ">10*1024")
 
     private val SELECTION_NOT_GIF = (MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
-            + " AND " + MediaStore.MediaColumns.SIZE + ">0"
-            + " AND " + MediaStore.MediaColumns.MIME_TYPE + NOT_GIF)
+            + " AND " + MediaStore.MediaColumns.SIZE + ">10*1024" //去除小图片，防止缓存太多
+            + " AND " + MediaStore.MediaColumns.MIME_TYPE + NOT_GIF
+            + " AND " + MediaStore.MediaColumns.DATA + " NOT LIKE '%/cache/%'" //其他缓存
+            + " AND " + MediaStore.MediaColumns.DATA + " NOT LIKE '%/zip_cache/%'" //qq空间缓存
+            + " AND " + MediaStore.MediaColumns.DATA + " NOT LIKE '%/score_task/images/%'" //今日头条缓存
+            + " AND " + MediaStore.MediaColumns.DATA + " NOT LIKE '%/ArModelFile/%'" //京东缓存
+            )//去除缓存目录下的图片
 
 
     fun loadMedia(activity: FragmentActivity, isGif: Boolean, body: (List<LocalMediaFolder>) -> Unit) {
@@ -71,19 +77,19 @@ object MediaLoading {
                                 val width = it.getInt(it.getColumnIndexOrThrow(PROJECTION[3]))
                                 val height = it.getInt(it.getColumnIndexOrThrow(PROJECTION[4]))
                                 val duration = it.getInt(it.getColumnIndexOrThrow(PROJECTION[5]))
+                                val time = it.getLong(it.getColumnIndexOrThrow(PROJECTION[6]))
+                                val mark = path.hashCode()
 
-                                val image = LocalMedia(path, duration.toLong(), type, pictureType, width, height)
-                                val folder = getImageFolder(path, imageFolders)
-                                folder.images.add(image)
-                                folder.imageNum = folder.imageNum + 1
-
-                                latelyImages.add(image)
-                                allImageFolder.imageNum = allImageFolder.imageNum + 1
+                                val image = LocalMedia(path, duration.toLong(), type, pictureType, width, height, mark)
+                                imageFolder(image, imageFolders)
+                                if (allImageFolder.imageNum < 500) { //防止图片太多
+                                    latelyImages.add(image)
+                                    allImageFolder.imageNum = allImageFolder.imageNum + 1
+                                }
                             } while (it.moveToNext())
 
                             if (latelyImages.size > 0) {
                                 sortFolder(imageFolders)
-                                imageFolders.add(0, allImageFolder)
                                 allImageFolder.firstImagePath = latelyImages[0].path
                                 val title = if (type == MediaMimeType.ofAudio())
                                     "所有音频"
@@ -91,6 +97,7 @@ object MediaLoading {
                                     "相机胶卷"
                                 allImageFolder.setName(title)
                                 allImageFolder.setImages(latelyImages)
+                                imageFolders.add(0, allImageFolder)
                             }
                         }
                         body(imageFolders)
@@ -128,20 +135,23 @@ object MediaLoading {
      * @param imageFolders
      * @return
      */
-    private fun getImageFolder(path: String, imageFolders: MutableList<LocalMediaFolder>): LocalMediaFolder {
-        val imageFile = File(path)
+    private fun imageFolder(media: LocalMedia, imageFolders: MutableList<LocalMediaFolder>) {
+        val imageFile = File(media.path)
         val folderFile = imageFile.parentFile
         for (folder in imageFolders) {
             // 同一个文件夹下，返回自己，否则创建新文件夹
             if (folder.name == folderFile.name) {
-                return folder
+                folder.images.add(media)
+                folder.imageNum = folder.imageNum + 1
+                return
             }
         }
         val newFolder = LocalMediaFolder()
         newFolder.name = folderFile.name
         newFolder.path = folderFile.absolutePath
-        newFolder.firstImagePath = path
+        newFolder.firstImagePath = media.path
+        newFolder.images.add(media)
+        newFolder.imageNum = newFolder.imageNum + 1
         imageFolders.add(newFolder)
-        return newFolder
     }
 }
