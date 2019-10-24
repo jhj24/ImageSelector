@@ -49,7 +49,7 @@ class ImagePreviewActivity : BaseImageActivity() {
         if (isImageSelector) {
             updateSelectedNum(imageSelectedList.size, "完成")
         }
-        initViewPager(currentIndex, isImageSelector)
+        initViewPager(isImageSelector)
         imageHandler()
     }
 
@@ -57,8 +57,7 @@ class ImagePreviewActivity : BaseImageActivity() {
     /**
      * 初始化 ImagePager
      */
-    private fun initViewPager(imageIndex: Int, isImageSelector: Boolean) {
-        currentIndex = imageIndex
+    private fun initViewPager(isImageSelector: Boolean) {
         imageViewPager.adapter = pageAdapter
         imageViewPager.currentItem = currentIndex
         imageViewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
