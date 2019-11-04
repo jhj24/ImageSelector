@@ -13,7 +13,7 @@ import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.utils.MediaMimeType
 import com.jhj.imageselector.utils.selected
 import com.jhj.imageselector.utils.toArrayList
-import com.zgdj.qualitycontrol.utils.activityresult.ActivityResult
+import com.jhj.imageselector.activityresult.ActivityResult
 import kotlinx.android.synthetic.main.activity_image_preview.*
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*

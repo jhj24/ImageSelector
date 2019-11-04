@@ -1,4 +1,4 @@
-package com.zgdj.qualitycontrol.utils.activityresult
+package com.jhj.imageselector.activityresult
 
 import android.app.Activity
 import android.app.Fragment

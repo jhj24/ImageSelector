@@ -27,8 +27,8 @@ import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import com.yalantis.ucrop.UCrop
-import com.zgdj.qualitycontrol.utils.activityresult.ActivityResult
-import com.zgdj.qualitycontrol.utils.permissions.PermissionsCheck
+import com.jhj.imageselector.activityresult.ActivityResult
+import com.jhj.imageselector.permissions.PermissionsCheck
 import kotlinx.android.synthetic.main.activity_image_selector.*
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*

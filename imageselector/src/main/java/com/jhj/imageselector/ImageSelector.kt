@@ -7,7 +7,7 @@ import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.ui.ImagePreviewActivity
 import com.jhj.imageselector.ui.ImageSelectorActivity
 import com.jhj.imageselector.utils.toArrayList
-import com.zgdj.qualitycontrol.utils.activityresult.ActivityResult
+import com.jhj.imageselector.activityresult.ActivityResult
 
 object ImageSelector {
     fun camera(mActivity: Activity, body: (List<LocalMedia>) -> Unit) {

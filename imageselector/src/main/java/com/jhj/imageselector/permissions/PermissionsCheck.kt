@@ -1,4 +1,4 @@
-package com.zgdj.qualitycontrol.utils.permissions
+package com.jhj.imageselector.permissions
 
 
 import android.Manifest

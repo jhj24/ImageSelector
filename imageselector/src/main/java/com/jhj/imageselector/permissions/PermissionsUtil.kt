@@ -1,4 +1,4 @@
-package com.zgdj.qualitycontrol.utils.permissions
+package com.jhj.imageselector.permissions
 
 import android.Manifest
 import android.app.Activity
@@ -21,7 +21,19 @@ object PermissionsUtil {
             Manifest.permission.WRITE_EXTERNAL_STORAGE to "内存",
             Manifest.permission.READ_PHONE_STATE to "获取手机信息",
             Manifest.permission.ACCESS_FINE_LOCATION to "定位",
-            Manifest.permission.ACCESS_COARSE_LOCATION to "定位"
+            Manifest.permission.ACCESS_COARSE_LOCATION to "定位",
+            Manifest.permission.READ_CALENDAR to "日历",
+            Manifest.permission.WRITE_CALENDAR to "日历",
+            Manifest.permission.READ_CONTACTS to "联系人",
+            Manifest.permission.WRITE_CONTACTS to "联系人",
+            Manifest.permission.RECORD_AUDIO to "麦克风",
+            Manifest.permission.BODY_SENSORS to "传感器",
+            Manifest.permission.SEND_SMS to "短信",
+            Manifest.permission.RECEIVE_SMS to "短信",
+            Manifest.permission.READ_SMS to "短信",
+            Manifest.permission.RECEIVE_WAP_PUSH to "短信",
+            Manifest.permission.RECEIVE_MMS to "短信"
+
     )
 
     /**
