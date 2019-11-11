@@ -101,7 +101,7 @@ open class BaseImageActivity : AppCompatActivity() {
 
     fun imageNoCache(path: Any, imageView: ImageView) {
         val noCacheOptions = RequestOptions()
-                .placeholder(R.mipmap.ic_placeholder)
+                .placeholder(R.mipmap.ic_image_selector_placeholder)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
         Glide.with(this)
                 .asBitmap()

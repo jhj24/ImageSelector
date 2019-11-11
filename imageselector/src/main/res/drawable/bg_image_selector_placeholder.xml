@@ -11,6 +11,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/ic_placeholder" />
+            android:src="@mipmap/ic_image_selector_placeholder" />
     </item>
 </layer-list>

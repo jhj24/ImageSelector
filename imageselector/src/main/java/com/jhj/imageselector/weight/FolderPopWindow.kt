@@ -7,7 +7,6 @@ import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Handler
-import android.support.v7.widget.LinearLayoutManager
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
@@ -65,7 +64,7 @@ class FolderPopWindow(private val mContext: Context) : PopupWindow() {
                     injector
                             .with<ImageView>(R.id.iv_folder_image) {
                                 val options = RequestOptions()
-                                        .placeholder(R.mipmap.ic_placeholder)
+                                        .placeholder(R.mipmap.ic_image_selector_placeholder)
                                         .sizeMultiplier(0.5f)
                                         .transform(RoundedCorners(8))
                                         .diskCacheStrategy(DiskCacheStrategy.ALL)
