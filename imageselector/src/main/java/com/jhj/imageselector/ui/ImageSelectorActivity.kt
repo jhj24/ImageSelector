@@ -481,18 +481,20 @@ open class ImageSelectorActivity : BaseImageActivity() {
                 media.duration = 0
                 media.isChecked = true
                 media.mimeType = ImageExtra.TYPE_IMAGE
-                imageSelectedList.add(media)
-                previewList.add(0, media)
-                adapter.addData(1, media)
 
-                // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
-                manualSaveFolder(media)
-                updateSelectedNum(imageSelectedList.size, "预览")
                 if (isOnlyCamera) {
                     ActivityResult.with(this)
                             .putParcelableArrayList(ImageExtra.EXTRA_SELECTED_RESULT, arrayListOf(media))
                             .finish()
                     overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
+                }else{
+                    imageSelectedList.add(media)
+                    previewList.add(0, media)
+                    adapter.addData(1, media)
+
+                    // 解决部分手机拍照完Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,不及时刷新问题手动添加
+                    manualSaveFolder(media)
+                    updateSelectedNum(imageSelectedList.size, "预览")
                 }
             }
         }
