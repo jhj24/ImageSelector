@@ -35,7 +35,6 @@ class MainActivity : AppCompatActivity() {
                     injector
                             .with<ImageView>(R.id.iv_image_selector_picture) {
                                 Glide.with(this@MainActivity)
-                                        .asBitmap()
                                         .load(path)
                                         .into(it)
                             }

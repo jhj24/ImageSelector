@@ -82,10 +82,8 @@ object MediaLoading {
 
                                 val image = LocalMedia(path, duration.toLong(), type, pictureType, width, height, mark)
                                 imageFolder(image, imageFolders)
-                                if (allImageFolder.imageNum < 500) { //防止图片太多
-                                    latelyImages.add(image)
-                                    allImageFolder.imageNum = allImageFolder.imageNum + 1
-                                }
+                                latelyImages.add(image)
+                                allImageFolder.imageNum = allImageFolder.imageNum + 1
                             } while (it.moveToNext())
 
                             if (latelyImages.size > 0) {

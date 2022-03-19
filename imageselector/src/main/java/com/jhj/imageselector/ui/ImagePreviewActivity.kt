@@ -1,5 +1,6 @@
 package com.jhj.imageselector.ui
 
+import android.arch.lifecycle.Observer
 import android.os.Bundle
 import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
@@ -7,19 +8,23 @@ import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import com.github.chrisbanes.photoview.PhotoView
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.jhj.imageselector.R
+import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.config.ImageExtra
+import com.jhj.imageselector.utils.LiveDataBus
 import com.jhj.imageselector.utils.MediaMimeType
 import com.jhj.imageselector.utils.selected
 import com.jhj.imageselector.utils.toArrayList
-import com.jhj.imageselector.activityresult.ActivityResult
 import kotlinx.android.synthetic.main.activity_image_preview.*
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
 import org.jetbrains.anko.backgroundColor
 import org.jetbrains.anko.toast
-import uk.co.senab.photoview.PhotoView
+
 
 /**
  * 图片预览
@@ -38,18 +43,20 @@ class ImagePreviewActivity : BaseImageActivity() {
         setContentView(R.layout.activity_image_preview)
         layout_image_selector_title.backgroundColor = (255 * 0.1).toInt() shl 24 or toolbarColor
         layout_bottom_preview.backgroundColor = (255 * 0.1).toInt() shl 24 or toolbarColor
-
-        imageList = intent.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_IMAGE_LIST).toArrayList()
-        currentIndex = intent.getIntExtra(ImageExtra.EXTRA_IMAGE_INDEX, 0)
         //图片是否可选择
         val isImageSelector = intent.getBooleanExtra(ImageExtra.EXTRA_IMAGE_IS_SELECTED, false)
+        LiveDataBus.get()
+                .with(ImageExtra.EXTRA_IMAGE_LIST, String::class.java)
+                .observeSticky(this, Observer<String> {
+                    imageList = Gson().fromJson(it, object : TypeToken<List<LocalMedia>>() {}.type)
+                    tv_image_selector_title.text = "${currentIndex + 1}/${imageList.size}"
+                    initViewPager(isImageSelector)
+                })
 
-        tv_image_selector_title.text = "${currentIndex + 1}/${imageList.size}"
-
+        currentIndex = intent.getIntExtra(ImageExtra.EXTRA_IMAGE_INDEX, 0)
         if (isImageSelector) {
             updateSelectedNum(imageSelectedList.size, "完成")
         }
-        initViewPager(isImageSelector)
         imageHandler()
     }
 
@@ -205,7 +212,7 @@ class ImagePreviewActivity : BaseImageActivity() {
             val photoView = PhotoView(container.context)
             imageNoCache(imageList[position].path, photoView)
             container.addView(photoView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            photoView.setOnViewTapListener { view, x, y ->
+            photoView.setOnPhotoTapListener { view, x, y ->
                 closeActivity()
             }
             return photoView

@@ -16,19 +16,20 @@ import android.support.v7.widget.GridLayoutManager
 import android.text.TextUtils
 import android.view.View
 import android.widget.ImageView
+import com.google.gson.Gson
 import com.jhj.imageselector.ImageSelector
 import com.jhj.imageselector.R
+import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.bean.LocalMediaFolder
 import com.jhj.imageselector.config.ImageExtra
+import com.jhj.imageselector.permissions.PermissionsCheck
 import com.jhj.imageselector.utils.*
 import com.jhj.imageselector.weight.FolderPopWindow
 import com.jhj.imageselector.weight.GridSpacingItemDecoration
 import com.jhj.slimadapter.SlimAdapter
 import com.jhj.slimadapter.holder.ViewInjector
 import com.yalantis.ucrop.UCrop
-import com.jhj.imageselector.activityresult.ActivityResult
-import com.jhj.imageselector.permissions.PermissionsCheck
 import kotlinx.android.synthetic.main.activity_image_selector.*
 import kotlinx.android.synthetic.main.layout_image_selector_bottom.*
 import kotlinx.android.synthetic.main.layout_image_selector_topbar.*
@@ -268,11 +269,12 @@ open class ImageSelectorActivity : BaseImageActivity() {
                             }
                             .clicked {
                                 var index = position
-                                if (isAllowTakePhoto && adapter.getDataList<Camera>().get(0) is Camera) {
+                                if (isAllowTakePhoto && adapter.getDataList().get(0) is Camera) {
                                     index = position - 1
                                 }
+                                LiveDataBus.get().with(ImageExtra.EXTRA_IMAGE_LIST).value = Gson().toJson(previewList.toArrayList())
                                 ActivityResult.with(this@ImageSelectorActivity)
-                                        .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_LIST, previewList.toArrayList())
+                                        //.putParcelableArrayList(ImageExtra.EXTRA_IMAGE_LIST, previewList.toArrayList())
                                         .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, imageSelectedList)
                                         .putBoolean(ImageExtra.EXTRA_IMAGE_IS_SELECTED, true)
                                         .putInt(ImageExtra.EXTRA_IMAGE_INDEX, index)
@@ -487,7 +489,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                             .putParcelableArrayList(ImageExtra.EXTRA_SELECTED_RESULT, arrayListOf(media))
                             .finish()
                     overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
-                }else{
+                } else {
                     imageSelectedList.add(media)
                     previewList.add(0, media)
                     adapter.addData(1, media)
