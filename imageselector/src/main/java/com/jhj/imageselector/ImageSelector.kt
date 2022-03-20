@@ -1,13 +1,14 @@
 package com.jhj.imageselector
 
 import android.app.Activity
-import android.os.Parcelable
+import com.google.gson.Gson
+import com.jhj.imageselector.activityresult.ActivityResult
 import com.jhj.imageselector.bean.LocalMedia
 import com.jhj.imageselector.config.ImageExtra
 import com.jhj.imageselector.ui.ImagePreviewActivity
 import com.jhj.imageselector.ui.ImageSelectorActivity
+import com.jhj.imageselector.utils.LiveDataBus
 import com.jhj.imageselector.utils.toArrayList
-import com.jhj.imageselector.activityresult.ActivityResult
 
 object ImageSelector {
     fun camera(mActivity: Activity, body: (List<LocalMedia>) -> Unit) {
@@ -66,8 +67,8 @@ object ImageSelector {
 
     fun preview(mActivity: Activity, imageList: List<LocalMedia>, currentIndex: Int = 0, isDelete: Boolean = false,
                 body: (List<LocalMedia>) -> Unit = {}) {
+        LiveDataBus.get().with(ImageExtra.EXTRA_IMAGE_LIST).value = Gson().toJson(imageList)
         ActivityResult.with(mActivity)
-                .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_LIST, imageList.toArrayList<Parcelable>())
                 .putInt(ImageExtra.EXTRA_IMAGE_INDEX, currentIndex)
                 .putBoolean(ImageExtra.EXTRA_IMAGE_IS_DELETE, isDelete)
                 .targetActivity(ImagePreviewActivity::class.java)
@@ -75,6 +76,9 @@ object ImageSelector {
                     val list = data?.getParcelableArrayListExtra<LocalMedia>(ImageExtra.EXTRA_SELECTED_RESULT).orEmpty()
                     body(list)
                 }
+
         mActivity.overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
     }
+
+
 }

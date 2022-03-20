@@ -1,5 +1,6 @@
 package com.jhj.imageselector.ui
 
+import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.os.Bundle
 import android.support.v4.view.PagerAdapter
@@ -37,6 +38,7 @@ class ImagePreviewActivity : BaseImageActivity() {
 
     private lateinit var imageList: MutableList<LocalMedia>
     private var currentIndex = 0
+   // val onPhotoViewLongClick: (Activity, String) -> Boolean = { _, _ -> false }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -215,6 +217,9 @@ class ImagePreviewActivity : BaseImageActivity() {
             photoView.setOnPhotoTapListener { view, x, y ->
                 closeActivity()
             }
+           /* photoView.setOnLongClickListener {
+                return@setOnLongClickListener onPhotoViewLongClick(this@ImagePreviewActivity, imageList[position].path)
+            }*/
             return photoView
         }
 

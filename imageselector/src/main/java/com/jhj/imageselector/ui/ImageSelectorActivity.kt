@@ -272,7 +272,7 @@ open class ImageSelectorActivity : BaseImageActivity() {
                                 if (isAllowTakePhoto && adapter.getDataList().get(0) is Camera) {
                                     index = position - 1
                                 }
-                                LiveDataBus.get().with(ImageExtra.EXTRA_IMAGE_LIST).value = Gson().toJson(previewList.toArrayList())
+                                LiveDataBus.get().with(ImageExtra.EXTRA_IMAGE_LIST).value = Gson().toJson(previewList)
                                 ActivityResult.with(this@ImageSelectorActivity)
                                         //.putParcelableArrayList(ImageExtra.EXTRA_IMAGE_LIST, previewList.toArrayList())
                                         .putParcelableArrayList(ImageExtra.EXTRA_IMAGE_SELECTED_LIST, imageSelectedList)

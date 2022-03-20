@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
                 this.dataList = it
                 adapter.setDataList(it)
             }
+
         }
     }
 
